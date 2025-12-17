@@ -7,7 +7,7 @@ hidemeta: true
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
 
   <div style="background: var(--entry); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <img src="/web_server.png" style="width: 100%; height: 200px; object-fit: cover; display: block; margin: 0;" alt="Web Dev Project">
+    <img src="/web_server.PNG" style="width: 100%; height: 200px; object-fit: cover; display: block; margin: 0;" alt="Web Dev Project">
     <div style="padding: 20px;">
       <h3 style="margin-top: 0; color: var(--primary);">Website Development</h3>
       <p style="color: var(--secondary); font-size: 0.9rem;">
