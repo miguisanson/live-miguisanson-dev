@@ -1,0 +1,62 @@
+baseURL = "https://miguisanson.dev/"
+title = "Miguel Joaquin A. Sanson"
+theme = "PaperMod"
+languageCode = "en-us"
+
+[params]
+  defaultTheme = "auto"
+  ShowShareButtons = false
+  ShowReadingTime = false
+  displayFullLangName = true
+
+  # --- PROFILE SECTION ---
+  # These settings are used by the Theme's "Profile Mode" layout.
+  # If you want to change the layout, look in: themes/PaperMod/layouts/partials/index_profile.html
+  [params.profileMode]
+    enabled = true
+    title = "Miguel Joaquin A. Sanson"
+    subtitle = "📍 Manila, Philippines | Information Technology Student @ DLSU Manila"
+    imageUrl = "miguel.jpg" # File must be in /static/ folder
+    imageWidth = 200
+    imageHeight = 200
+    buttons = [
+      { name = "View Resume", url = "#about" }
+    ]
+
+  # --- SOCIAL ICONS ---
+  # These appear below your profile picture.
+  [[params.socialIcons]]
+    name = "email"
+    url = "mailto:miguelsanson21@gmail.com"
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/miguisanson"
+  [[params.socialIcons]]
+    name = "linkedin"
+    url = "https://linkedin.com/in/miguel-joaquin-sanson-474703295"
+
+# --- NAVIGATION MENU ---
+# These buttons appear at the very top right of the page.
+# The 'url' starting with '#' links to the ID sections in layouts/index.html
+[menu]
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "#about"
+    weight = 10
+  [[menu.main]]
+    identifier = "experience"
+    name = "Experience"
+    url = "#experience"
+    weight = 20
+  [[menu.main]]
+    identifier = "projects"
+    name = "Projects"
+    url = "#projects"
+    weight = 30
+
+# --- RENDERER SETTINGS ---
+# This allows HTML code (like your Grid layout) to work inside Markdown files.
+# Affects: content/projects.md, content/experience.md
+[markup.goldmark.renderer]
+  unsafe = true

@@ -1,0 +1,38 @@
+{{ define "main" }}
+
+<article class="first-entry home-info">
+    {{ partial "index_profile.html" . }}
+</article>
+
+<div class="post-content">
+
+    {{ with .Site.GetPage "/about" }}
+    <section id="about" style="padding-top: 10px; margin-bottom: 20px;">
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
+        {{ .Content }}
+    </section>
+    {{ end }}
+
+    {{ with .Site.GetPage "/experience" }}
+    
+    <hr style="border: 0; border-top: 1px solid var(--tertiary); margin: 0 0 20px 0;">
+    
+    <section id="experience" style="padding-top: 10px; margin-bottom: 20px;">
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
+        {{ .Content }}
+    </section>
+    {{ end }}
+
+    {{ with .Site.GetPage "/projects" }}
+    
+    <hr style="border: 0; border-top: 1px solid var(--tertiary); margin: 0 0 20px 0;">
+    
+    <section id="projects" style="padding-top: 10px; margin-bottom: 20px;">
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
+        {{ .Content }}
+    </section>
+    {{ end }}
+
+</div>
+
+{{ end }}

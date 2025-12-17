@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Miguel Joaquin A. Sanson</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on Miguel Joaquin A. Sanson</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About Me</title>
+      <link>http://localhost:1313/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/about/</guid>
+      <description>&lt;div class=&#34;about-container&#34;&gt;
+&lt;p style=&#34;text-align: left; margin: 0 0 20px 0; font-size: 1.1rem; color: var(--primary);&#34;&gt;
+I’m an Information Technology Student. I have been programming for about 4 years. I create passion projects.
+&lt;/p&gt;
+&lt;h3 style=&#34;text-align: left; margin-bottom: 15px;&#34;&gt;What I work with&lt;/h3&gt;
+&lt;div class=&#34;skills-wrapper&#34; style=&#34;justify-content: flex-start; margin-bottom: 30px;&#34;&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/python&#34; class=&#34;skill-icon&#34; alt=&#34;Python&#34;&gt; 
+    Python
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;http://localhost:1313/sql_logo.png&#34; class=&#34;skill-icon&#34; alt=&#34;SQL&#34;&gt; 
+    SQL
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/html5&#34; class=&#34;skill-icon&#34; alt=&#34;HTML&#34;&gt; 
+    HTML
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;http://localhost:1313/css_logo.png&#34; class=&#34;skill-icon&#34; alt=&#34;CSS&#34;&gt; 
+    CSS
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/javascript&#34; class=&#34;skill-icon&#34; alt=&#34;JS&#34;&gt; 
+    JavaScript
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/react&#34; class=&#34;skill-icon&#34; alt=&#34;React&#34;&gt; 
+    React.js
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/wordpress&#34; class=&#34;skill-icon&#34; alt=&#34;WP&#34;&gt; 
+    WordPress
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/linux&#34; class=&#34;skill-icon&#34; alt=&#34;Linux&#34;&gt; 
+    Linux
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/figma&#34; class=&#34;skill-icon&#34; alt=&#34;Figma&#34;&gt; 
+    Figma
+  &lt;/span&gt;
+  &lt;span class=&#34;skill-tag&#34;&gt;
+    &lt;img src=&#34;https://cdn.simpleicons.org/docker&#34; class=&#34;skill-icon&#34; alt=&#34;Docker&#34;&gt; 
+    Docker
+  &lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&#34;education-container&#34;&gt;
+&lt;div class=&#34;education-grid&#34;&gt;
+&lt;div class=&#34;edu-column&#34;&gt;
+&lt;h3&gt;Education&lt;/h3&gt;
+&lt;div class=&#34;edu-item&#34;&gt;
+&lt;span class=&#34;edu-school&#34;&gt;De La Salle University&lt;/span&gt;
+&lt;span class=&#34;edu-meta&#34;&gt;BS Computer Science, Software Tech | 2021 - Present&lt;/span&gt;
+&lt;p class=&#34;edu-desc&#34;&gt;Coursework: Data Structures, Algorithms, Web Dev, Database Systems.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&#34;edu-item&#34;&gt;
+&lt;span class=&#34;edu-school&#34;&gt;University of St. La Salle&lt;/span&gt;
+&lt;span class=&#34;edu-meta&#34;&gt;High School Diploma | Graduated 2020&lt;/span&gt;
+&lt;p class=&#34;edu-desc&#34;&gt;Graduated with High Honors.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Experience</title>
+      <link>http://localhost:1313/experience/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/experience/</guid>
+      <description>&lt;div class=&#34;timeline&#34;&gt;
+  &lt;div class=&#34;timeline-item&#34;&gt;
+    &lt;span class=&#34;timeline-company&#34;&gt;Karma Kombucha&lt;/span&gt;
+    &lt;h3 class=&#34;timeline-title&#34;&gt;Partner&lt;/h3&gt;
+    &lt;span class=&#34;timeline-date&#34;&gt;March 2025 - Present&lt;/span&gt;
+    &lt;p&gt;
+      Produced, marketed, and sold handcrafted kombucha. Designed and deployed the business website and managed the brand&#39;s digital presence and supply chain processes.
+    &lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&#34;timeline-item&#34;&gt;
+    &lt;span class=&#34;timeline-company&#34;&gt;Baron Corporation Properties&lt;/span&gt;
+    &lt;h3 class=&#34;timeline-title&#34;&gt;Intern / Assistant&lt;/h3&gt;
+    &lt;span class=&#34;timeline-date&#34;&gt;April 2022 - Present&lt;/span&gt;
+    &lt;p&gt;
+      Implemented marketing strategies on platforms like Lamudi to increase property visibility. Acted as a broker to facilitate communication between renters and management.
+    &lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class=&#34;timeline-item&#34;&gt;
+    &lt;span class=&#34;timeline-company&#34;&gt;Favor Tech Team&lt;/span&gt;
+    &lt;h3 class=&#34;timeline-title&#34;&gt;Volunteer&lt;/h3&gt;
+    &lt;span class=&#34;timeline-date&#34;&gt;Dec 2023 - Nov 2024&lt;/span&gt;
+    &lt;p&gt;
+      Assisted in website maintenance and updates using WordPress, Elementor, JavaScript, and SQL. Created and tested technical demonstrations for publication.
+    &lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Technical Projects</title>
+      <link>http://localhost:1313/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/</guid>
+      <description>Web Development, Server Hosting, and Hardware Repair.</description>
+    </item>
+  </channel>
+</rss>

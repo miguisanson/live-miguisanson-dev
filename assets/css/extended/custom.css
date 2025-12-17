@@ -1,0 +1,213 @@
+/* =========================================
+   1. GLOBAL & UTILITY STYLES
+   ========================================= */
+
+/* Enables smooth scrolling for the whole page */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; 
+}
+
+/* Hides the anchor # symbol on all headings */
+.anchor {
+    display: none !important;
+}
+
+/* =========================================
+   2. HEADER & NAVIGATION
+   ========================================= */
+
+/* Apply sticky positioning to the main header wrapper */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--theme); 
+    width: 100%;
+    transition: background-color 0.3s;
+    opacity: 0.98;
+}
+
+/* Ensure the nav container is transparent */
+.nav {
+    background: transparent;
+}
+
+/* =========================================
+   3. EXPERIENCE TIMELINE (Compact)
+   ========================================= */
+
+/* Main timeline container line */
+.timeline {
+    position: relative;
+    border-left: 2px solid var(--tertiary);
+    margin-left: 10px;
+    padding-left: 20px;
+}
+
+/* Individual Job Entry Wrapper */
+.timeline-item {
+    position: relative;
+    margin-bottom: 15px; /* TIGHTER: Was 25px */
+}
+
+/* The Dot */
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 6px; 
+    width: 12px;
+    height: 12px;
+    background: var(--theme);
+    border: 3px solid var(--primary);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+/* Company Name Styling */
+.timeline-company {
+    color: var(--primary);
+    font-weight: bold;
+    display: block;
+    font-size: 1.15rem; 
+    margin-bottom: 0;   
+    line-height: 1.1;   
+}
+
+/* Job Title Styling */
+.timeline-title {
+    margin-top: 0;
+    margin-bottom: 2px;
+    font-size: 1rem;    
+    color: var(--primary);   
+    line-height: 1.2;
+}
+
+/* Date Range Styling */
+.timeline-date {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--secondary);
+    margin-bottom: 4px; /* TIGHTER: Was 8px */
+}
+
+/* Description Text Styling */
+.timeline-item p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4; /* TIGHTER: Was 1.5 */
+}
+
+/* =========================================
+   4. ABOUT SECTION (Compact)
+   ========================================= */
+
+/* --- Skill Chips --- */
+.skills-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px; /* TIGHTER: Was 8px */
+    margin-bottom: 20px; /* TIGHTER: Was 25px */
+    justify-content: flex-start;
+}
+
+.skill-tag {
+    background: var(--entry);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 4px 10px; /* SMALLER PADDING */
+    border-radius: 6px;
+    font-size: 0.85rem; /* SLIGHTLY SMALLER FONT */
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.skill-tag:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.skill-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    display: block;
+}
+
+/* --- Education & Leadership Grid --- */
+.education-container {
+    background: var(--entry);
+    color: var(--primary);
+    border-radius: 12px;
+    padding: 20px; /* TIGHTER: Was 30px */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+}
+
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 20px; /* TIGHTER: Was 30px */
+}
+
+.edu-column h3 {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 10px; /* TIGHTER: Was 12px */
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.edu-item {
+    margin-bottom: 12px; /* TIGHTER: Was 15px */
+}
+
+.edu-school {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 1px;
+}
+
+.edu-meta {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--primary);
+    opacity: 0.8;
+    margin-bottom: 3px;
+}
+
+.edu-desc {
+    font-size: 0.9rem;
+    color: var(--primary);
+    line-height: 1.3; /* TIGHTER: Was 1.4 */
+    margin: 0;
+}
+
+/* --- Download Button --- */
+.btn-download-wrapper {
+    text-align: left;
+    margin-top: 20px; /* TIGHTER: Was 25px */
+}
+
+.btn-download {
+    display: inline-block;
+    background: var(--primary);
+    color: var(--theme) !important;
+    font-weight: bold;
+    padding: 8px 16px; /* COMPACT BUTTON */
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.3s;
+    font-size: 0.9rem;
+}
+
+.btn-download:hover {
+    opacity: 0.8;
+}
