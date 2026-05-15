@@ -6,33 +6,109 @@
 
 <div class="post-content">
 
-    {{ with .Site.GetPage "/about" }}
+    {{- with .Site.GetPage "/about" }}
     <section id="about" style="padding-top: 10px; margin-bottom: 20px;">
         <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
         {{ .Content }}
     </section>
-    {{ end }}
+    {{- end }}
 
-    {{ with .Site.GetPage "/experience" }}
-    
+    {{- with .Site.GetPage "/experience" }}
+
     <hr style="border: 0; border-top: 1px solid var(--tertiary); margin: 0 0 20px 0;">
-    
+
     <section id="experience" style="padding-top: 10px; margin-bottom: 20px;">
         <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
         {{ .Content }}
     </section>
-    {{ end }}
+    {{- end }}
 
-    {{ with .Site.GetPage "/projects" }}
-    
+    {{- with .Site.GetPage "/projects" }}
+
     <hr style="border: 0; border-top: 1px solid var(--tertiary); margin: 0 0 20px 0;">
-    
+
     <section id="projects" style="padding-top: 10px; margin-bottom: 20px;">
         <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
         {{ .Content }}
     </section>
-    {{ end }}
+    {{- end }}
+
+    {{- with .Site.GetPage "/certifications" }}
+
+    <hr style="border: 0; border-top: 1px solid var(--tertiary); margin: 0 0 20px 0;">
+
+    <section id="certifications" style="padding-top: 10px; margin-bottom: 20px;">
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">{{ .Title }}</h2>
+        {{ .Content }}
+    </section>
+    {{- end }}
 
 </div>
+
+<div class="pdf-modal" id="certificate-modal" aria-hidden="true">
+    <div class="pdf-modal-backdrop" data-pdf-close></div>
+    <section class="pdf-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="certificate-modal-title">
+        <header class="pdf-modal-header">
+            <h3 id="certificate-modal-title">Certificate</h3>
+            <div class="pdf-modal-actions">
+                <button class="pdf-modal-open" id="certificate-modal-open" type="button">Open PDF</button>
+                <button class="pdf-modal-close" type="button" aria-label="Close certificate preview" data-pdf-close>&times;</button>
+            </div>
+        </header>
+        <iframe id="certificate-modal-frame" title="Certificate preview"></iframe>
+    </section>
+</div>
+
+<script>
+    (() => {
+        const modal = document.getElementById("certificate-modal");
+        const frame = document.getElementById("certificate-modal-frame");
+        const title = document.getElementById("certificate-modal-title");
+        const openLink = document.getElementById("certificate-modal-open");
+        const viewButtons = document.querySelectorAll("[data-pdf]");
+        let lastFocused = null;
+        let activePdfUrl = "";
+
+        const closeModal = () => {
+            modal.setAttribute("aria-hidden", "true");
+            frame.removeAttribute("src");
+            activePdfUrl = "";
+            document.body.classList.remove("pdf-modal-open-body");
+            if (lastFocused) {
+                lastFocused.focus();
+            }
+        };
+
+        viewButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                lastFocused = button;
+                const pdfUrl = button.dataset.pdf;
+                const pdfTitle = button.dataset.title || "Certificate";
+                activePdfUrl = pdfUrl;
+                title.textContent = pdfTitle;
+                frame.setAttribute("src", pdfUrl);
+                modal.setAttribute("aria-hidden", "false");
+                document.body.classList.add("pdf-modal-open-body");
+                modal.querySelector("[data-pdf-close]").focus();
+            });
+        });
+
+        openLink.addEventListener("click", () => {
+            if (activePdfUrl) {
+                window.open(activePdfUrl, "_blank", "noopener,noreferrer");
+            }
+        });
+
+        modal.querySelectorAll("[data-pdf-close]").forEach((button) => {
+            button.addEventListener("click", closeModal);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && modal.getAttribute("aria-hidden") === "false") {
+                closeModal();
+            }
+        });
+    })();
+</script>
 
 {{ end }}

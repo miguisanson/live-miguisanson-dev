@@ -1,40 +1,41 @@
 ---
 title: "Technical Projects"
-summary: "Web Development, Server Hosting, and Hardware Repair."
+summary: "Web development, Linux hosting, and practical hardware repair."
+keywords: ["Web Development", "Linux Home Server", "Cloudflare Tunnel", "Hardware Repair"]
 hidemeta: true
 ---
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+<div class="project-grid">
 
-  <div style="background: var(--entry); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <img src="/web_server.png" style="width: 100%; height: 200px; object-fit: cover; display: block; margin: 0;" alt="Web Dev Project">
-    <div style="padding: 20px;">
-      <h3 style="margin-top: 0; color: var(--primary);">Website Development</h3>
-      <p style="color: var(--secondary); font-size: 0.9rem;">
-        Built and deployed multiple websites for personal and small business use using WordPress, HTML, CSS, JavaScript, and React.js.
+  <article class="project-card">
+    <img src="/web_server.png" alt="Website development and hosting project">
+    <div class="project-card-body">
+      <h3>Website Development and Hosting</h3>
+      <p>
+        Built, deployed, and hosted multiple web applications for personal and small business use with HTML, CSS, JavaScript, React.js, and Cloudflare tunnelling. Led projects from concept to production with attention to UI/UX, responsive design, and reliable deployment.
       </p>
     </div>
-  </div>
+  </article>
 
-  <div style="background: var(--entry); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <img src="/homebrew_hosting.png" style="width: 100%; height: 200px; object-fit: cover; display: block; margin: 0;" alt="Home Server Project">
-    <div style="padding: 20px;">
-      <h3 style="margin-top: 0; color: var(--primary);">Home Server & Hosting</h3>
-      <p style="color: var(--secondary); font-size: 0.9rem;">
-        Configured a home server to host web applications and databases, gaining hands-on experience in Linux systems and networking.
+  <article class="project-card">
+    <img src="/homebrew_hosting.png" alt="Linux home server project">
+    <div class="project-card-body">
+      <h3>Linux Home Server</h3>
+      <p>
+        Configured and managed a Linux-based home server for web and database hosting, including the environment behind a capstone thesis platform for graduate student lifecycle monitoring and analytics.
       </p>
-      <a href="#" style="color: #ffffffff; font-weight: bold; text-decoration: none;">See More &rarr;</a>
     </div>
-  </div>
+  </article>
 
-  <div style="background: var(--entry); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <img src="/hardware_repair.png" style="width: 100%; height: 200px; object-fit: cover; display: block; margin: 0;" alt="Hardware Repair Project">
-    <div style="padding: 20px;">
-      <h3 style="margin-top: 0; color: var(--primary);">Hardware Repair and Sales</h3>
-      <p style="color: var(--secondary); font-size: 0.9rem;">
-        Repaired and sold gaming consoles and performed PC diagnostics, developing advanced troubleshooting and customer service skills.
+  <article class="project-card">
+    <img src="/hardware_repair.png" alt="Hardware repair and sales project">
+    <div class="project-card-body">
+      <h3>Hardware Repair and Sales</h3>
+      <p>
+        Repaired and sold gaming consoles and older hardware through Carousell, and performed PC diagnostics and repairs for customers. Built practical troubleshooting, component replacement, and customer service skills.
       </p>
-      <a href="https://www.carousell.ph/u/sanmig02/" target="_blank" rel="noopener noreferrer" style="color: #ffffffff; font-weight: bold; text-decoration: none;">View Page &rarr;</a>
-  </div>
+      <a href="https://www.carousell.ph/u/sanmig02/" target="_blank" rel="noopener noreferrer">View Page</a>
+    </div>
+  </article>
 
 </div>

@@ -1,43 +1,27 @@
 ---
-title: "Experience"
+title: "Relevant Experience"
+summary: "SRE operations, website maintenance, and technical delivery experience."
+keywords: ["SRE Operations", "Website Maintenance", "P&G Next Leadership Camp", "Favor Tech Team"]
 hidemeta: true
 ---
 
 <div class="timeline">
 
   <div class="timeline-item">
-    <span class="timeline-company">Karma Kombucha</span>
-    <h3 class="timeline-title">Partner</h3>
-    <span class="timeline-date">March 2025 - Present</span>
+    <span class="timeline-company">P&amp;G Next Leadership Camp</span>
+    <h3 class="timeline-title">SRE Operations Manager Role</h3>
+    <span class="timeline-date">March 2026 - April 2026 | Manila, Philippines</span>
     <p>
-      Produced, marketed, and sold handcrafted kombucha. Designed and deployed the business website and managed the brand's digital presence and supply chain processes.
-    </p>
-  </div>
-
-  <div class="timeline-item">
-    <span class="timeline-company">Baron Corporation Properties</span>
-    <h3 class="timeline-title">Intern / Assistant</h3>
-    <span class="timeline-date">April 2022 - Present</span>
-    <p>
-      Implemented marketing strategies on platforms like Lamudi to increase property visibility. Acted as a broker to facilitate communication between renters and management.
+      Designed the operations and reliability portion of Consumer IQ, a P&amp;G Next MVP web app, by defining monitoring, self-healing, and incident-response workflows for data, AI, API, and dashboard reliability. Built the service-level framework and coordinated issue ownership across Data Engineering and AI Engineering to support trustworthy business insights and faster recovery from failures.
     </p>
   </div>
 
   <div class="timeline-item">
     <span class="timeline-company">Favor Tech Team</span>
     <h3 class="timeline-title">Volunteer</h3>
-    <span class="timeline-date">Dec 2023 - Nov 2024</span>
+    <span class="timeline-date">December 2023 - November 2024 | Manila, Philippines</span>
     <p>
-      Assisted in website maintenance and updates using WordPress, Elementor, JavaScript, and SQL. Created and tested technical demonstrations for publication.
-    </p>
-  </div>
-
-  <div class="timeline-item">
-    <span class="timeline-company">25th Benilde Model United Nations</span>
-    <h3 class="timeline-title">Delegate (Canada)</h3>
-    <span class="timeline-date">Jan 2024</span>
-    <p>
-      Represented Canada in the General Assembly. Led working groups, negotiated with multiple delegations, and successfully pushed a resolution to adoption.
+      Assisted in regular website maintenance and updates, ensuring up-to-date content and seamless performance using WordPress, JavaScript, and SQL. Created and tested technical demonstrations for publication.
     </p>
   </div>
 
