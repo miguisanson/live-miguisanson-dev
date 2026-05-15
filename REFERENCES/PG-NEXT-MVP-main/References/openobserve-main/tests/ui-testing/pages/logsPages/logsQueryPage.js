@@ -1,0 +1,83 @@
+import { expect } from '@playwright/test';
+
+export class LogsQueryPage {
+  constructor(page) {
+    this.page = page;
+    this.queryEditor = '[data-test="logs-search-bar-query-editor"]';
+    this.dateTimeButton = '[data-test="date-time-btn"]';
+    this.relative15MinButton = '[data-test="date-time-relative-15-m-btn"] > .q-btn__content > .block';
+    this.refreshButton = '[data-test="logs-search-bar-refresh-btn"]';
+    this.errorMessage = '[data-test="logs-search-error-message"]';
+    this.utilitiesMenuButton = '[data-test="logs-search-bar-utilities-menu-btn"]';
+    this.resetFiltersButton = '[data-test="logs-search-bar-reset-filters-btn"]';
+    this.noDataFoundText = 'warning No data found for';
+    this.resultDetail = '[data-test="logs-search-result-detail-undefined"]';
+    this.histogramToggle = '[data-test="logs-search-bar-show-histogram-toggle-btn"]';
+  }
+
+  async setDateTimeFilter() {
+    await this.page.locator(this.dateTimeButton).click({ force: true });
+    await this.page.locator(this.relative15MinButton).click({ force: true });
+  }
+
+  async typeQuery(query) {
+    const queryEditor = this.page.locator(this.queryEditor);
+    await expect(queryEditor).toBeVisible();
+    await queryEditor.locator(".inputarea").fill(query);
+  }
+
+  async clickRefresh() {
+    await this.page.locator(this.refreshButton).click();
+  }
+
+  async clickErrorMessage() {
+    // Wait longer for error message to appear in deployed environments
+    await expect(this.page.locator(this.errorMessage).getByText('No events found')).toBeVisible({ timeout: 30000 });
+    await this.page.locator(this.errorMessage).click();
+  }
+
+  async clickResetFilters() {
+    // Reset filters button is now directly on the toolbar
+    await this.page.locator(this.resetFiltersButton).click();
+  }
+
+  async clickNoDataFound() {
+    const noDataFoundLocator = this.page.getByText(this.noDataFoundText);
+    await expect(noDataFoundLocator).toBeVisible({ timeout: 10000 });
+    await noDataFoundLocator.click();
+  }
+
+  async clickResultDetail() {
+    await this.page.locator(this.resultDetail).click();
+  }
+
+  async waitForTimeout(milliseconds) {
+    await this.page.waitForTimeout(milliseconds);
+  }
+
+  async toggleHistogram() {
+    // Histogram toggle is now inside the utilities hamburger menu
+    await this.page.locator(this.utilitiesMenuButton).click();
+    await this.page.waitForTimeout(200);
+    await this.page.locator(this.histogramToggle).click();
+  }
+
+  async isHistogramOn() {
+    // Histogram toggle is now inside the utilities hamburger menu
+    await this.page.locator(this.utilitiesMenuButton).click();
+    await this.page.waitForTimeout(200);
+    const histogramToggle = this.page.locator(this.histogramToggle);
+    const isOn = await histogramToggle
+      .locator('[role="switch"]')
+      .evaluate(el => el.getAttribute('aria-checked') === 'true');
+    await this.page.keyboard.press('Escape');
+    return isOn;
+  }
+
+  async ensureHistogramState(desiredState) {
+    const isOn = await this.isHistogramOn();
+    if (isOn !== desiredState) {
+      await this.toggleHistogram();
+    }
+  }
+} 

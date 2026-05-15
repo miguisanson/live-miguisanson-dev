@@ -1,0 +1,145 @@
+import type { DemoUser, RouteKey, UserRole } from "../types/auth";
+
+export const DEMO_PASSWORD = "demo123";
+export const SESSION_STORAGE_KEY = "consumer_iq_demo_session_v1";
+
+export const mockUsers: DemoUser[] = [
+  {
+    id: "u-ops-mgr",
+    name: "Maria Santos",
+    email: "operations.manager@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "Operations Manager",
+    defaultRoute: "/operations",
+  },
+  {
+    id: "u-data-eng",
+    name: "Ken Ramirez",
+    email: "data.engineer@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "Data Engineer",
+    defaultRoute: "/operations",
+  },
+  {
+    id: "u-ai-eng",
+    name: "Jules Navarro",
+    email: "ai.engineer@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "AI Engineer",
+    defaultRoute: "/operations",
+  },
+  {
+    id: "u-proj-mgr",
+    name: "Ava Lim",
+    email: "project.manager@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "Project Manager",
+    defaultRoute: "/overview",
+  },
+  {
+    id: "u-market-ops",
+    name: "Liam Cruz",
+    email: "market.ops@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "Market Operations",
+    defaultRoute: "/brand-overview",
+  },
+  {
+    id: "u-rnd",
+    name: "Nina Lee",
+    email: "rnd.lead@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "R&D",
+    defaultRoute: "/brand-overview",
+  },
+  {
+    id: "u-supply",
+    name: "Noah Tan",
+    email: "product.supply@consumeriq.local",
+    password: DEMO_PASSWORD,
+    role: "Product Supply",
+    defaultRoute: "/brand-overview",
+  },
+];
+
+export const routePermissionsByRole: Record<UserRole, RouteKey[]> = {
+  "Operations Manager": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "intelligence-command-center",
+    "operations",
+    "incidents",
+    "incident-detail",
+    "runbooks",
+    "alerts",
+    "settings-monitoring",
+    "opportunities",
+    "help",
+  ],
+  "Data Engineer": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "operations",
+    "incidents",
+    "incident-detail",
+    "runbooks",
+    "alerts",
+    "settings-monitoring",
+    "opportunities",
+    "help",
+  ],
+  "AI Engineer": [
+    "overview",
+    "intelligence-command-center",
+    "operations",
+    "incidents",
+    "incident-detail",
+    "runbooks",
+    "alerts",
+    "settings-monitoring",
+    "opportunities",
+    "help",
+  ],
+  "Project Manager": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "intelligence-command-center",
+    "operations",
+    "incidents",
+    "incident-detail",
+    "runbooks",
+    "opportunities",
+    "help",
+  ],
+  "Market Operations": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "intelligence-command-center",
+    "opportunities",
+    "help",
+  ],
+  "R&D": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "intelligence-command-center",
+    "opportunities",
+    "help",
+  ],
+  "Product Supply": [
+    "overview",
+    "brand-overview",
+    "competitor-intelligence",
+    "intelligence-command-center",
+    "opportunities",
+    "help",
+  ],
+};
+
+export function canAccessRoute(role: UserRole, route: RouteKey): boolean {
+  return routePermissionsByRole[role].includes(route);
+}

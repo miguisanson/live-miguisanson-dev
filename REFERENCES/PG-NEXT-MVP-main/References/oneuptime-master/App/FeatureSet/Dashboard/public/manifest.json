@@ -1,0 +1,146 @@
+{
+  "short_name": "OneUptime",
+  "name": "OneUptime - Complete Observability Platform",
+  "id": "/dashboard/oneuptime",
+  "description": "Monitor, observe, debug, and resolve. Everything you need to build reliable software in one open-source platform.",
+  "iarc_rating_id": "60bf3666-0cc5-4ac4-a5c7-726a4d52b7b6",
+  "widgets": [],
+  "icons": [
+    {
+      "src": "/dashboard/assets/img/favicons/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/dashboard/assets/img/favicons/android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/dashboard/assets/img/favicons/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/dashboard/assets/img/favicons/android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/dashboard/assets/img/favicons/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/dashboard/assets/img/Screenshots/Desktop/incident-management.png",
+      "type": "image/png",
+      "sizes": "3840x2160",
+      "label": "Desktop incident management workspace",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Desktop/monitors.png",
+      "type": "image/png",
+      "sizes": "3840x2160",
+      "label": "Desktop monitor analytics view",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Desktop/status-page.png",
+      "type": "image/png",
+      "sizes": "3840x2160",
+      "label": "Desktop status page customization",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Desktop/workflows.png",
+      "type": "image/png",
+      "sizes": "3840x2160",
+      "label": "Desktop automation workflows",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Mobile/incident-management.png",
+      "type": "image/png",
+      "sizes": "1082x2402",
+      "label": "Mobile incident management overview",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Mobile/monitor-view.png",
+      "type": "image/png",
+      "sizes": "1082x2402",
+      "label": "Mobile detailed monitor view",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Mobile/monitors.png",
+      "type": "image/png",
+      "sizes": "1082x2402",
+      "label": "Mobile monitors list",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Mobile/status-page.png",
+      "type": "image/png",
+      "sizes": "1082x2402",
+      "label": "Mobile status page view",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/dashboard/assets/img/Screenshots/Mobile/workflow.png",
+      "type": "image/png",
+      "sizes": "1082x2402",
+      "label": "Mobile workflow runbook",
+      "form_factor": "narrow"
+    }
+  ],
+  "start_url": "/dashboard/",
+  "scope": "/dashboard/",
+  "scope_extensions": [
+    {"origin": "*.oneuptime.com"}
+  ],
+  "launch_handler": {
+    "client_mode": ["focus-existing"]
+  },  
+  "file_handlers": [],
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "categories": ["productivity", "business", "utilities"],
+  "lang": "en",
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "dir": "ltr",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+oneuptime",
+      "url": "/dashboard?url=%s"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "OneUptime Dashboard",
+      "short_name": "OneUptime Dashboard",
+      "description": "Open OneUptime Dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/dashboard/assets/img/favicons/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

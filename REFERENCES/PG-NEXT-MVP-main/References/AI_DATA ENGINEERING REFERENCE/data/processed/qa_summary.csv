@@ -1,0 +1,10 @@
+metric,value
+raw_rows,75618.0
+review_rows_after_split,72909.0
+product_only_rows,1930.0
+final_master_rows,72909.0
+distinct_products,1448.0
+distinct_reviews,72909.0
+pct_has_text,75.83
+pct_has_image,43.8
+pct_low_rating,1.31

@@ -1,0 +1,54 @@
+{{> Start this}}
+
+
+
+{{> CustomLogo this}}
+{{> EmailTitle title=(concat "Report: " statusPageName) }}
+
+{{> InfoBlock info="Here is the report for all the resources:"}}
+
+{{> DetailBoxStart this}}
+{{> DetailBoxField title="Report Date: " text=report.reportDates}}
+{{> DetailBoxField title="Total Resources: " text=report.totalResources}}
+{{> DetailBoxField title="Total Incidents: " text=report.totalIncidents}}
+{{> DetailBoxField title="Total Downtime: " text=report.totalDowntimeInHoursAndMinutes}}
+{{> DetailBoxField title="Average Uptime: " text=report.averageUptimePercent}}
+{{> DetailBoxEnd this}}
+
+{{#ifCond hasResources "true"}}
+{{> InfoBlock info="Here is the more detailed report:"}}
+<table style="width: calc(100% - 64px); margin: 18px 32px; border-collapse: collapse; font-size: 14px; font-family: 'Helvetica Neue', Arial, sans-serif; color: #1f2733;">
+    <tr>
+        <th style="background: #353b4d; color: #ffffff; padding: 13px 12px; text-align: left; font-weight: 700; letter-spacing: 0.3px; border-bottom: 1px solid #2b3040; border-top-left-radius: 10px;">Resource Name</th>
+        <th style="background: #353b4d; color: #ffffff; padding: 13px 12px; text-align: right; font-weight: 700; letter-spacing: 0.3px; border-bottom: 1px solid #2b3040;">Uptime %</th>
+        <th style="background: #353b4d; color: #ffffff; padding: 13px 12px; text-align: right; font-weight: 700; letter-spacing: 0.3px; border-bottom: 1px solid #2b3040;">Downtime</th>
+        <th style="background: #353b4d; color: #ffffff; padding: 13px 12px; text-align: right; font-weight: 700; letter-spacing: 0.3px; border-bottom: 1px solid #2b3040; border-top-right-radius: 10px;">Incidents</th>
+    </tr>
+    {{#each report.resources}}
+    <tr style="background-color: {{#if @odd}}#f0f3f9{{else}}#ffffff{{/if}};">
+        <td style="padding: 12px 12px; border-bottom: 1px solid #e5e8f0;">{{this.resourceName}}</td>
+        <td style="padding: 12px 12px; text-align: right; border-bottom: 1px solid #e5e8f0; font-weight: 600;">{{this.uptimePercentAsString}}</td>
+        <td style="padding: 12px 12px; text-align: right; border-bottom: 1px solid #e5e8f0;">{{this.downtimeInHoursAndMinutes}}</td>
+        <td style="padding: 12px 12px; text-align: right; border-bottom: 1px solid #e5e8f0; font-weight: 600;">{{this.totalIncidentCount}}</td>
+    </tr>
+    {{/each}}
+</table>
+{{/ifCond}}
+    
+{{#ifCond hasResources "false"}}
+{{> InfoBlock info="No resources have been added to this status page yet."}}
+{{/ifCond}}
+
+{{> InfoBlock info=(concat subscriberEmailNotificationFooterText "") }}
+
+
+{{#if detailsUrl}}
+{{> InfoBlock info=(concat "Find further information here: " detailsUrl)}}
+{{else}}
+{{> InfoBlock info=(concat "Find further information here: " statusPageUrl)}}
+{{/if}}
+
+{{> UnsubscribeBlock this}}
+{{> VerticalSpace this}}
+
+{{> End this}}

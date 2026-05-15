@@ -1,0 +1,300 @@
+import {
+  Page as PlaywrightPage,
+  Browser as PlaywrightBrowser,
+  chromium,
+  firefox,
+} from "playwright";
+import LocalFile from "./LocalFile";
+import BadDataException from "../../Types/Exception/BadDataException";
+import ScreenSizeType from "../../Types/ScreenSizeType";
+import BrowserType from "../../Types/BrowserType";
+import logger from "./Logger";
+import CaptureSpan from "./Telemetry/CaptureSpan";
+import os from "os";
+
+export type Page = PlaywrightPage;
+export type Browser = PlaywrightBrowser;
+
+export default class BrowserUtil {
+  // Chromium arguments for stability and memory optimization in containerized environments
+  public static chromiumStabilityArgs: string[] = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--disable-software-rasterizer",
+    "--disable-dbus", // no D-Bus daemon in containers
+    "--disable-features=dbus", // additional D-Bus feature gate
+    "--no-zygote", // skip zygote process that fails OOM score adjustments in containers
+    // Memory optimization flags
+    "--disable-extensions", // no extensions needed for monitoring
+    "--disable-background-networking", // disable background network requests
+    "--disable-default-apps", // don't load default apps
+    "--disable-sync", // no sync needed
+    "--disable-translate", // no translation needed
+    "--disable-backgrounding-occluded-windows", // don't throttle hidden windows
+    "--disable-renderer-backgrounding", // don't background renderers
+    "--disable-background-timer-throttling", // don't throttle timers
+    "--disable-ipc-flooding-protection", // allow high IPC throughput
+    "--memory-pressure-off", // disable memory pressure signals that cause GC
+    "--js-flags=--max-old-space-size=256", // limit V8 heap to 256MB
+    "--disable-features=TranslateUI,BlinkGenPropertyTrees", // disable unused features
+    "--disable-component-update", // don't update components
+    "--disable-domain-reliability", // no domain reliability monitoring
+    "--disable-client-side-phishing-detection", // no phishing detection
+    "--no-first-run", // skip first run experience
+    "--disable-hang-monitor", // no hang monitor
+    "--disable-popup-blocking", // allow popups for testing
+    "--disable-prompt-on-repost", // no repost prompts
+    "--metrics-recording-only", // disable metrics uploading
+    "--safebrowsing-disable-auto-update", // no safe browsing updates
+  ];
+
+  // Firefox preferences for stability and memory optimization in containerized environments
+  public static firefoxStabilityPrefs: Record<
+    string,
+    string | number | boolean
+  > = {
+    "gfx.webrender.all": false, // disable GPU-based WebRender
+    "media.hardware-video-decoding.enabled": false, // disable hardware video decoding
+    "layers.acceleration.disabled": true, // disable GPU-accelerated layers
+    "network.http.spdy.enabled.http2": true, // keep HTTP/2 enabled
+    // Memory optimization preferences
+    "javascript.options.mem.max": 256 * 1024, // limit JS memory to 256MB in KB
+    "javascript.options.mem.high_water_mark": 128, // GC high water mark in MB
+    "browser.cache.memory.capacity": 16384, // limit memory cache to 16MB
+    "browser.cache.disk.enable": false, // disable disk cache
+    "browser.sessionhistory.max_entries": 3, // limit session history
+    "browser.sessionhistory.max_total_viewers": 0, // don't keep pages in bfcache
+    "dom.ipc.processCount": 1, // single content process
+    "extensions.update.enabled": false, // no extension updates
+    "network.prefetch-next": false, // no prefetching
+    "network.dns.disablePrefetch": true, // no DNS prefetch
+    "network.http.speculative-parallel-limit": 0, // no speculative connections
+    "browser.tabs.remote.autostart": false, // disable multi-process
+    "media.peerconnection.enabled": false, // disable WebRTC
+    "media.navigator.enabled": false, // disable getUserMedia
+  };
+
+  @CaptureSpan()
+  public static async convertHtmlToBase64Screenshot(data: {
+    html: string;
+  }): Promise<string | null> {
+    try {
+      const html: string = data.html;
+
+      const pageAndBrowser: {
+        page: Page;
+        browser: Browser;
+      } = await BrowserUtil.getPageByBrowserType({
+        browserType: BrowserType.Chromium,
+        screenSizeType: ScreenSizeType.Desktop,
+      });
+
+      const page: Page = pageAndBrowser.page;
+      const browser: Browser = pageAndBrowser.browser;
+      await page.setContent(html, {
+        waitUntil: "domcontentloaded",
+      });
+      const screenshot: Buffer = await page.screenshot({ type: "png" });
+
+      await browser.close();
+
+      return screenshot.toString("base64");
+    } catch (e) {
+      logger.debug(e);
+      return null;
+    }
+  }
+
+  @CaptureSpan()
+  public static async getPageByBrowserType(data: {
+    browserType: BrowserType;
+    screenSizeType: ScreenSizeType;
+  }): Promise<{
+    page: Page;
+    browser: Browser;
+  }> {
+    const viewport: {
+      height: number;
+      width: number;
+    } = BrowserUtil.getViewportHeightAndWidth({
+      screenSizeType: data.screenSizeType,
+    });
+
+    let page: Page | null = null;
+    let browser: Browser | null = null;
+
+    if (data.browserType === BrowserType.Chromium) {
+      browser = await chromium.launch({
+        executablePath: await BrowserUtil.getChromeExecutablePath(),
+        headless: true,
+        args: BrowserUtil.chromiumStabilityArgs,
+      });
+      page = await browser.newPage();
+    }
+
+    if (data.browserType === BrowserType.Firefox) {
+      browser = await firefox.launch({
+        executablePath: await BrowserUtil.getFirefoxExecutablePath(),
+        headless: true,
+        firefoxUserPrefs: BrowserUtil.firefoxStabilityPrefs,
+      });
+      page = await browser.newPage();
+    }
+
+    /*
+     * if (data.browserType === BrowserType.Webkit) {
+     *     browser = await webkit.launch();
+     *     page = await browser.newPage();
+     * }
+     */
+
+    await page?.setViewportSize({
+      width: viewport.width,
+      height: viewport.height,
+    });
+
+    if (!browser) {
+      throw new BadDataException("Invalid Browser Type.");
+    }
+
+    if (!page) {
+      // close the browser if page is not created
+      await browser.close();
+      throw new BadDataException("Invalid Browser Type.");
+    }
+
+    return {
+      page: page,
+      browser: browser,
+    };
+  }
+
+  @CaptureSpan()
+  public static getViewportHeightAndWidth(options: {
+    screenSizeType: ScreenSizeType;
+  }): {
+    height: number;
+    width: number;
+  } {
+    let viewPortHeight: number = 0;
+    let viewPortWidth: number = 0;
+
+    switch (options.screenSizeType) {
+      case ScreenSizeType.Desktop:
+        viewPortHeight = 1080;
+        viewPortWidth = 1920;
+        break;
+      case ScreenSizeType.Mobile:
+        viewPortHeight = 640;
+        viewPortWidth = 360;
+        break;
+      case ScreenSizeType.Tablet:
+        viewPortHeight = 768;
+        viewPortWidth = 1024;
+        break;
+      default:
+        viewPortHeight = 1080;
+        viewPortWidth = 1920;
+        break;
+    }
+
+    return { height: viewPortHeight, width: viewPortWidth };
+  }
+
+  public static getPlaywrightBrowsersPath(): string {
+    return (
+      process.env["PLAYWRIGHT_BROWSERS_PATH"] ||
+      `${os.homedir()}/.cache/ms-playwright`
+    );
+  }
+
+  @CaptureSpan()
+  public static async getChromeExecutablePath(): Promise<string> {
+    const browsersPath: string = this.getPlaywrightBrowsersPath();
+
+    const doesDirectoryExist: boolean =
+      await LocalFile.doesDirectoryExist(browsersPath);
+    if (!doesDirectoryExist) {
+      throw new BadDataException("Chrome executable path not found.");
+    }
+
+    // get list of files in the directory
+    const directories: string[] =
+      await LocalFile.getListOfDirectories(browsersPath);
+
+    if (directories.length === 0) {
+      throw new BadDataException("Chrome executable path not found.");
+    }
+
+    const chromeInstallationName: string | undefined = directories.find(
+      (directory: string) => {
+        return directory.includes("chromium");
+      },
+    );
+
+    if (!chromeInstallationName) {
+      throw new BadDataException("Chrome executable path not found.");
+    }
+
+    const chromeExecutableCandidates: Array<string> = [
+      `${browsersPath}/${chromeInstallationName}/chrome-linux/chrome`,
+      `${browsersPath}/${chromeInstallationName}/chrome-linux64/chrome`,
+      `${browsersPath}/${chromeInstallationName}/chrome64/chrome`,
+      `${browsersPath}/${chromeInstallationName}/chrome/chrome`,
+    ];
+
+    for (const executablePath of chromeExecutableCandidates) {
+      if (await LocalFile.doesFileExist(executablePath)) {
+        return executablePath;
+      }
+    }
+
+    throw new BadDataException("Chrome executable path not found.");
+  }
+
+  @CaptureSpan()
+  public static async getFirefoxExecutablePath(): Promise<string> {
+    const browsersPath: string = this.getPlaywrightBrowsersPath();
+
+    const doesDirectoryExist: boolean =
+      await LocalFile.doesDirectoryExist(browsersPath);
+    if (!doesDirectoryExist) {
+      throw new BadDataException("Firefox executable path not found.");
+    }
+
+    // get list of files in the directory
+    const directories: string[] =
+      await LocalFile.getListOfDirectories(browsersPath);
+
+    if (directories.length === 0) {
+      throw new BadDataException("Firefox executable path not found.");
+    }
+
+    const firefoxInstallationName: string | undefined = directories.find(
+      (directory: string) => {
+        return directory.includes("firefox");
+      },
+    );
+
+    if (!firefoxInstallationName) {
+      throw new BadDataException("Firefox executable path not found.");
+    }
+
+    const firefoxExecutableCandidates: Array<string> = [
+      `${browsersPath}/${firefoxInstallationName}/firefox/firefox`,
+      `${browsersPath}/${firefoxInstallationName}/firefox-linux64/firefox`,
+      `${browsersPath}/${firefoxInstallationName}/firefox64/firefox`,
+      `${browsersPath}/${firefoxInstallationName}/firefox-64/firefox`,
+    ];
+
+    for (const executablePath of firefoxExecutableCandidates) {
+      if (await LocalFile.doesFileExist(executablePath)) {
+        return executablePath;
+      }
+    }
+
+    throw new BadDataException("Firefox executable path not found.");
+  }
+}

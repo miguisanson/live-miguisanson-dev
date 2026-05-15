@@ -1,0 +1,10 @@
+global:
+  storageClass: ""
+
+host: localhost
+httpProtocol: http
+
+image:
+  tag: test
+  registry: ghcr.io
+  repository: oneuptime

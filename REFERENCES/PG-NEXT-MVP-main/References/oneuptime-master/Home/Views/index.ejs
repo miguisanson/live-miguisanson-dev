@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" id="home">
+
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+<head>
+  <title>OneUptime | The Open-Source Observability Platform</title>
+  <meta name="description"
+    content="The open-source observability platform. Infrastructure monitoring, incident management, status pages, and APM — unified and self-hostable.">
+  <%- include('head', {
+    enableGoogleTagManager: typeof enableGoogleTagManager !== 'undefined' ? enableGoogleTagManager : false
+}) -%>
+
+</head>
+
+<body>
+  <%- include('nav') -%>
+
+  <main id="main-content">
+    <%- include('./Partials/hero') -%>
+
+    <%- include('logo-roll') -%>
+
+    <%- include('./Partials/product-tabs') -%>
+
+    <%- include('./Partials/reviews') -%>
+
+    <%- include('features-table') -%>
+
+    <%- include('./Partials/copilot') -%>
+
+    <%- include('./Partials/enterprise-ready') -%>
+
+    <%- include('./Partials/proudly-open-source') -%>
+
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <%- include('cta') -%>
+  </main>
+
+  <%- include('footer') -%>
+
+  <%- include('./Partials/video-script') -%>
+  <%- include('./Partials/cta-tracking') -%>
+
+</body>
+
+</html>

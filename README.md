@@ -1,53 +1,90 @@
-# Miguel Joaquin A. Sanson Portfolio
+# miguisanson.dev
 
-This is a Hugo portfolio site using the PaperMod theme.
+Miguel Joaquin A. Sanson's personal technology hub, now transitioning from a Hugo/PaperMod resume site into a Next.js portfolio web app.
+
+## Active Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Markdown content for blog posts and project writeups
+- Typed data files for projects, games, lab demos, profile, and resume-style content
+- Static prototype bundles under `public/prototypes`
 
 ## Quick Start
 
-Run the same two scripts on Windows and Ubuntu.
-
-Windows:
-
-```powershell
-py setup.py
-py run.py
+```bash
+npm install
+npm run dev
 ```
 
-Ubuntu:
+Build production output:
 
 ```bash
-python3 setup.py
-python3 run.py
+npm run build
 ```
 
-`setup.py` initializes the PaperMod submodule, checks for Hugo, attempts to install it if it is missing, and verifies that the site builds.
-
-`run.py` starts a Hugo development server. On Windows it binds to `127.0.0.1`. On Linux it binds to `0.0.0.0` so the site can be tested from another device or through a server firewall rule.
-
-## Useful Commands
-
-Build the production files into `public/`:
+Run the production server after a successful build:
 
 ```bash
-python3 run.py --build
+npm run start
 ```
 
-Build and minify for production:
+## Current Structure
 
-```bash
-python3 run.py --build --minify
+```text
+src/
+  app/                  # Next.js routes
+  components/           # Layout, cards, UI, lab components
+  data/                 # Typed static data for profile/projects/games/lab
+  lib/                  # Markdown/frontmatter helpers
+content/
+  blog/                 # Markdown blog posts
+  projects/             # Markdown project case studies
+public/
+  certificates/         # Resume/certificate assets
+  prototypes/           # Static demo builds for project showcases
+legacy/
+  hugo-public/          # Preserved generated Hugo output
+REFERENCES/             # Source reference projects used for prototype migration
 ```
 
-Run on a specific server domain or IP:
+## Route Map
 
-```bash
-HUGO_BASEURL=http://your-server-ip:1313/ python3 run.py
-```
+- `/` - portfolio homepage
+- `/about` - about, interests, skills, education
+- `/resume` - resume-style page
+- `/blog` and `/blog/[slug]` - Markdown learning notes
+- `/projects` and `/projects/[slug]` - project listing and case studies
+- `/games` and `/games/[slug]` - game showcase placeholders
+- `/lab` - frontend proof-of-concept demos
+- `/lab/ai-workout-planner` - mock AI workout planner
+- `/lab/ai-qa-helper` - mock AI QA helper
+- `/lab/dashboard-demo` - mock analytics dashboard
+- `/prototypes/consumer-iq/` - static P&G Consumer IQ prototype bundle
+- `/prototypes/usls-graduate-lifecycle/` - static USLS graduate lifecycle prototype bundle
+- `/prototypes/home-server-lab/` - static homelab dashboard placeholder
 
-Run on a custom port:
+## Migration Notes
 
-```bash
-python3 run.py --port 8080
-```
+The previous Hugo/PaperMod source is still present for reference and should not be removed until the Next.js version is fully accepted. The old generated Hugo `public/` output was moved to `legacy/hugo-public/` because Next.js needs control of the root `public/` folder and would conflict with generated files like `public/index.html`.
 
-On Windows PowerShell, use `$env:HUGO_BASEURL = "http://localhost:1313/"` before running the script if you need to set environment variables.
+Reusable assets from the old Hugo `static/` folder were copied into the new Next.js `public/` folder. The project cards now link to static prototype bundles built from the richer reference apps:
+
+- `REFERENCES/PG-NEXT-MVP-main`
+- `REFERENCES/CAPSTONE-USLS-MVP/References/MVP-FIGMA`
+
+## Future Upgrade Path
+
+Keep the site static-first until a feature truly needs backend state.
+
+Possible future additions:
+
+- Prisma for database modeling
+- PostgreSQL, Supabase, or Neon for persisted data
+- OpenAI or another LLM provider through Next.js route handlers
+- Authentication only when private user data is introduced
+- Saved workout plans or QA history
+- Database-backed project logs and lab demo telemetry
+
+The current lab demos intentionally use mock responses and local component state only.

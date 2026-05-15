@@ -1,0 +1,147 @@
+import ProjectUtil from "Common/UI/Utils/Project";
+import PageComponentProps from "../../PageComponentProps";
+import FormFieldSchemaType from "Common/UI/Components/Forms/Types/FormFieldSchemaType";
+import ModelTable from "Common/UI/Components/ModelTable/ModelTable";
+import RoleLabel from "Common/UI/Components/RoleLabel/RoleLabel";
+import FieldType from "Common/UI/Components/Types/FieldType";
+import Navigation from "Common/UI/Utils/Navigation";
+import IncidentRole from "Common/Models/DatabaseModels/IncidentRole";
+import React, { Fragment, FunctionComponent, ReactElement } from "react";
+
+const IncidentRoles: FunctionComponent<
+  PageComponentProps
+> = (): ReactElement => {
+  return (
+    <Fragment>
+      <ModelTable<IncidentRole>
+        modelType={IncidentRole}
+        query={{
+          projectId: ProjectUtil.getCurrentProjectId()!,
+        }}
+        id="incident-roles-table"
+        name="Incidents > Settings > Incident Roles"
+        userPreferencesKey="incident-roles-table"
+        isDeleteable={true}
+        isEditable={true}
+        isCreateable={true}
+        cardProps={{
+          title: "Incident Roles",
+          description:
+            "Define roles that can be assigned to users during incident response (e.g., Incident Commander, Responder).",
+        }}
+        noItemsMessage={"No incident roles found."}
+        viewPageRoute={Navigation.getCurrentRoute()}
+        formFields={[
+          {
+            field: {
+              name: true,
+            },
+            title: "Name",
+            fieldType: FormFieldSchemaType.Text,
+            required: true,
+            placeholder: "Incident Commander",
+            validation: {
+              minLength: 2,
+            },
+          },
+          {
+            field: {
+              description: true,
+            },
+            title: "Description",
+            fieldType: FormFieldSchemaType.LongText,
+            required: false,
+            placeholder: "Primary decision maker during an incident.",
+          },
+          {
+            field: {
+              roleIcon: true,
+            },
+            title: "Role Icon",
+            fieldType: FormFieldSchemaType.Icon,
+            required: false,
+            placeholder: "Select an icon for this role",
+          },
+          {
+            field: {
+              color: true,
+            },
+            title: "Role Color",
+            fieldType: FormFieldSchemaType.Color,
+            required: true,
+            placeholder: "Please select color for this role.",
+          },
+          {
+            field: {
+              canAssignMultipleUsers: true,
+            },
+            title: "Allow Multiple Users",
+            fieldType: FormFieldSchemaType.Toggle,
+            required: false,
+            description:
+              "Enable this to allow multiple users to be assigned to this role for the same incident.",
+          },
+        ]}
+        showRefreshButton={true}
+        selectMoreFields={{
+          color: true,
+          roleIcon: true,
+          canAssignMultipleUsers: true,
+        }}
+        showViewIdButton={true}
+        filters={[
+          {
+            field: {
+              name: true,
+            },
+            type: FieldType.Text,
+            title: "Name",
+          },
+          {
+            field: {
+              description: true,
+            },
+            type: FieldType.Text,
+            title: "Description",
+          },
+        ]}
+        columns={[
+          {
+            field: {
+              name: true,
+            },
+            title: "Name",
+            type: FieldType.Text,
+            getElement: (item: IncidentRole): ReactElement => {
+              return (
+                <RoleLabel
+                  name={item.name || ""}
+                  color={item.color || undefined}
+                  icon={item.roleIcon || undefined}
+                  description={item.description || undefined}
+                />
+              );
+            },
+          },
+          {
+            field: {
+              description: true,
+            },
+            noValueMessage: "-",
+            title: "Description",
+            type: FieldType.LongText,
+          },
+          {
+            field: {
+              canAssignMultipleUsers: true,
+            },
+            title: "Multiple Users",
+            type: FieldType.Boolean,
+          },
+        ]}
+      />
+    </Fragment>
+  );
+};
+
+export default IncidentRoles;

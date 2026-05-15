@@ -1,0 +1,149 @@
+import PageComponentProps from "../../PageComponentProps";
+import CustomFieldType from "Common/Types/CustomField/CustomFieldType";
+import FormFieldSchemaType from "Common/UI/Components/Forms/Types/FormFieldSchemaType";
+import ModelTable from "Common/UI/Components/ModelTable/ModelTable";
+import FieldType from "Common/UI/Components/Types/FieldType";
+import Navigation from "Common/UI/Utils/Navigation";
+import IncidentCustomField from "Common/Models/DatabaseModels/IncidentCustomField";
+import MonitorCustomField from "Common/Models/DatabaseModels/MonitorCustomField";
+import OnCallDutyPolicyCustomField from "Common/Models/DatabaseModels/OnCallDutyPolicyCustomField";
+import ScheduledMaintenanceCustomField from "Common/Models/DatabaseModels/ScheduledMaintenanceCustomField";
+import StatusPageCustomField from "Common/Models/DatabaseModels/StatusPageCustomField";
+import TeamMemberCustomField from "Common/Models/DatabaseModels/TeamMemberCustomField";
+import React, { Fragment, ReactElement } from "react";
+import ProjectUtil from "Common/UI/Utils/Project";
+
+export type CustomFieldsBaseModels =
+  | MonitorCustomField
+  | StatusPageCustomField
+  | IncidentCustomField
+  | ScheduledMaintenanceCustomField
+  | OnCallDutyPolicyCustomField
+  | TeamMemberCustomField;
+
+export interface ComponentProps<CustomFieldsBaseModels>
+  extends PageComponentProps {
+  title: string;
+  modelType: { new (): CustomFieldsBaseModels };
+}
+
+const CustomFieldsPageBase: (
+  props: ComponentProps<CustomFieldsBaseModels>,
+) => ReactElement = (
+  props: ComponentProps<CustomFieldsBaseModels>,
+): ReactElement => {
+  return (
+    <Fragment>
+      <ModelTable<CustomFieldsBaseModels>
+        modelType={props.modelType}
+        userPreferencesKey="custom-fields-table"
+        query={{
+          projectId: ProjectUtil.getCurrentProjectId()!,
+        }}
+        showViewIdButton={true}
+        id="custom-fields-table"
+        name={"Settings > " + props.title}
+        isDeleteable={true}
+        isEditable={true}
+        isCreateable={true}
+        cardProps={{
+          title: props.title,
+          description:
+            "Custom fields help you add new fields to your resources in OneUptime.",
+        }}
+        noItemsMessage={"No custom fields found."}
+        viewPageRoute={Navigation.getCurrentRoute()}
+        formFields={[
+          {
+            field: {
+              name: true,
+            },
+            title: "Field Name",
+            fieldType: FormFieldSchemaType.Text,
+            required: true,
+            placeholder: "internal-service",
+            validation: {
+              minLength: 2,
+            },
+          },
+          {
+            field: {
+              description: true,
+            },
+            title: "Field Description",
+            fieldType: FormFieldSchemaType.LongText,
+            required: false,
+            placeholder: "This label is for all the internal services.",
+          },
+          {
+            field: {
+              customFieldType: true,
+            },
+            title: "Field Type",
+            fieldType: FormFieldSchemaType.Dropdown,
+            required: true,
+            placeholder: "Please select field type.",
+            dropdownOptions: Object.keys(CustomFieldType).map(
+              (item: string) => {
+                return {
+                  label: item,
+                  value: item,
+                };
+              },
+            ),
+          },
+        ]}
+        showRefreshButton={true}
+        filters={[
+          {
+            field: {
+              name: true,
+            },
+            title: "Field Name",
+            type: FieldType.Text,
+          },
+          {
+            field: {
+              description: true,
+            },
+            title: "Field Description",
+            type: FieldType.Text,
+          },
+          {
+            field: {
+              customFieldType: true,
+            },
+            title: "Field Type",
+            type: FieldType.Text,
+          },
+        ]}
+        columns={[
+          {
+            field: {
+              name: true,
+            },
+            title: "Field Name",
+            type: FieldType.Text,
+          },
+          {
+            field: {
+              description: true,
+            },
+            noValueMessage: "-",
+            title: "Field Description",
+            type: FieldType.Text,
+          },
+          {
+            field: {
+              customFieldType: true,
+            },
+            title: "Field Type",
+            type: FieldType.Text,
+          },
+        ]}
+      />
+    </Fragment>
+  );
+};
+
+export default CustomFieldsPageBase;

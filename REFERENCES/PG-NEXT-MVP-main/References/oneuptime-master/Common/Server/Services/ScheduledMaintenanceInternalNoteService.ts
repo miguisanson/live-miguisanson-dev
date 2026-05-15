@@ -1,0 +1,240 @@
+import ObjectID from "../../Types/ObjectID";
+import { OnCreate, OnUpdate } from "../Types/Database/Hooks";
+import DatabaseService from "./DatabaseService";
+import Model from "../../Models/DatabaseModels/ScheduledMaintenanceInternalNote";
+import ScheduledMaintenanceFeedService from "./ScheduledMaintenanceFeedService";
+import { ScheduledMaintenanceFeedEventType } from "../../Models/DatabaseModels/ScheduledMaintenanceFeed";
+import { Blue500 } from "../../Types/BrandColors";
+import { LIMIT_PER_PROJECT } from "../../Types/Database/LimitMax";
+import ScheduledMaintenance from "../../Models/DatabaseModels/ScheduledMaintenance";
+import ScheduledMaintenanceService from "./ScheduledMaintenanceService";
+import CaptureSpan from "../Utils/Telemetry/CaptureSpan";
+import File from "../../Models/DatabaseModels/File";
+import FileAttachmentMarkdownUtil from "../Utils/FileAttachmentMarkdownUtil";
+
+export class Service extends DatabaseService<Model> {
+  public constructor() {
+    super(Model);
+  }
+
+  @CaptureSpan()
+  public async addNote(data: {
+    userId: ObjectID;
+    scheduledMaintenanceId: ObjectID;
+    projectId: ObjectID;
+    note: string;
+    attachmentFileIds?: Array<ObjectID>;
+    postedFromSlackMessageId?: string;
+  }): Promise<Model> {
+    const internalNote: Model = new Model();
+    internalNote.createdByUserId = data.userId;
+    internalNote.scheduledMaintenanceId = data.scheduledMaintenanceId;
+    internalNote.projectId = data.projectId;
+    internalNote.note = data.note;
+
+    if (data.postedFromSlackMessageId) {
+      internalNote.postedFromSlackMessageId = data.postedFromSlackMessageId;
+    }
+
+    if (data.attachmentFileIds && data.attachmentFileIds.length > 0) {
+      internalNote.attachments = data.attachmentFileIds.map(
+        (fileId: ObjectID) => {
+          const file: File = new File();
+          file.id = fileId;
+          return file;
+        },
+      );
+    }
+
+    return this.create({
+      data: internalNote,
+      props: {
+        isRoot: true,
+      },
+    });
+  }
+
+  @CaptureSpan()
+  public async hasNoteFromSlackMessage(data: {
+    scheduledMaintenanceId: ObjectID;
+    postedFromSlackMessageId: string;
+  }): Promise<boolean> {
+    const existingNote: Model | null = await this.findOneBy({
+      query: {
+        scheduledMaintenanceId: data.scheduledMaintenanceId,
+        postedFromSlackMessageId: data.postedFromSlackMessageId,
+      },
+      select: {
+        _id: true,
+      },
+      props: {
+        isRoot: true,
+      },
+    });
+
+    return existingNote !== null;
+  }
+
+  @CaptureSpan()
+  public override async onCreateSuccess(
+    _onCreate: OnCreate<Model>,
+    createdItem: Model,
+  ): Promise<Model> {
+    const userId: ObjectID | null | undefined =
+      createdItem.createdByUserId || createdItem.createdByUser?.id;
+
+    const scheduledMaintenanceId: ObjectID =
+      createdItem.scheduledMaintenanceId!;
+
+    const scheduledMaintenanceNumberResult: {
+      number: number | null;
+      numberWithPrefix: string | null;
+    } = await ScheduledMaintenanceService.getScheduledMaintenanceNumber({
+      scheduledMaintenanceId: scheduledMaintenanceId,
+    });
+
+    const attachmentsMarkdown: string = await this.getAttachmentsMarkdown(
+      createdItem.id!,
+      "/scheduled-maintenance-internal-note/attachment",
+    );
+
+    await ScheduledMaintenanceFeedService.createScheduledMaintenanceFeedItem({
+      scheduledMaintenanceId: createdItem.scheduledMaintenanceId!,
+      projectId: createdItem.projectId!,
+      scheduledMaintenanceFeedEventType:
+        ScheduledMaintenanceFeedEventType.PrivateNote,
+      displayColor: Blue500,
+      userId: userId || undefined,
+
+      feedInfoInMarkdown: `📄 posted **private note** for this [Scheduled Maintenance ${scheduledMaintenanceNumberResult.numberWithPrefix || "#" + scheduledMaintenanceNumberResult.number}](${(await ScheduledMaintenanceService.getScheduledMaintenanceLinkInDashboard(createdItem.projectId!, scheduledMaintenanceId)).toString()}):
+    
+    ${(createdItem.note || "") + attachmentsMarkdown}
+              `,
+      workspaceNotification: {
+        sendWorkspaceNotification: true,
+        notifyUserId: userId || undefined,
+      },
+    });
+
+    return createdItem;
+  }
+
+  @CaptureSpan()
+  public override async onUpdateSuccess(
+    onUpdate: OnUpdate<Model>,
+    _updatedItemIds: Array<ObjectID>,
+  ): Promise<OnUpdate<Model>> {
+    if (onUpdate.updateBy.data.note) {
+      const updatedItems: Array<Model> = await this.findBy({
+        query: onUpdate.updateBy.query,
+        limit: LIMIT_PER_PROJECT,
+        skip: 0,
+        props: {
+          isRoot: true,
+        },
+        select: {
+          scheduledMaintenanceId: true,
+          projectId: true,
+          note: true,
+          createdByUserId: true,
+          createdByUser: {
+            _id: true,
+          },
+          scheduledMaintenance: {
+            scheduledMaintenanceNumber: true,
+            scheduledMaintenanceNumberWithPrefix: true,
+            projectId: true,
+            _id: true,
+          },
+        },
+      });
+
+      const userId: ObjectID | null | undefined =
+        onUpdate.updateBy.props.userId;
+
+      for (const updatedItem of updatedItems) {
+        const scheduledMaintenance: ScheduledMaintenance =
+          updatedItem.scheduledMaintenance!;
+
+        const attachmentsMarkdown: string = await this.getAttachmentsMarkdown(
+          updatedItem.id!,
+          "/scheduled-maintenance-internal-note/attachment",
+        );
+
+        await ScheduledMaintenanceFeedService.createScheduledMaintenanceFeedItem(
+          {
+            scheduledMaintenanceId: updatedItem.scheduledMaintenanceId!,
+            projectId: updatedItem.projectId!,
+            scheduledMaintenanceFeedEventType:
+              ScheduledMaintenanceFeedEventType.PrivateNote,
+            displayColor: Blue500,
+            userId: userId || undefined,
+
+            feedInfoInMarkdown: `📄 updated **Private Note** for this [Scheduled Maintenance ${scheduledMaintenance.scheduledMaintenanceNumberWithPrefix || "#" + scheduledMaintenance.scheduledMaintenanceNumber}](${(await ScheduledMaintenanceService.getScheduledMaintenanceLinkInDashboard(scheduledMaintenance.projectId!, scheduledMaintenance.id!)).toString()})
+        
+${(updatedItem.note || "") + attachmentsMarkdown}
+                  `,
+            workspaceNotification: {
+              sendWorkspaceNotification: true,
+              notifyUserId: userId || undefined,
+            },
+          },
+        );
+      }
+    }
+    return onUpdate;
+  }
+
+  private async getAttachmentsMarkdown(
+    modelId: ObjectID,
+    attachmentApiPath: string,
+  ): Promise<string> {
+    if (!modelId) {
+      return "";
+    }
+
+    const noteWithAttachments: Model | null = await this.findOneById({
+      id: modelId,
+      select: {
+        attachments: {
+          _id: true,
+        },
+      },
+      props: {
+        isRoot: true,
+      },
+    });
+
+    if (!noteWithAttachments || !noteWithAttachments.attachments) {
+      return "";
+    }
+
+    const attachmentIds: Array<ObjectID> = noteWithAttachments.attachments
+      .map((file: File) => {
+        if (file.id) {
+          return file.id;
+        }
+
+        if (file._id) {
+          return new ObjectID(file._id);
+        }
+
+        return null;
+      })
+      .filter((id: ObjectID | null): id is ObjectID => {
+        return Boolean(id);
+      });
+
+    if (!attachmentIds.length) {
+      return "";
+    }
+
+    return await FileAttachmentMarkdownUtil.buildAttachmentMarkdown({
+      modelId,
+      attachmentIds,
+      attachmentApiPath,
+    });
+  }
+}
+
+export default new Service();

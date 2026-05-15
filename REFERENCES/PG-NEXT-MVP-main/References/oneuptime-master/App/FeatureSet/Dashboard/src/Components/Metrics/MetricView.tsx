@@ -1,0 +1,498 @@
+import React, {
+  Fragment,
+  FunctionComponent,
+  ReactElement,
+  useEffect,
+  useState,
+} from "react";
+import MetricQueryConfig from "./MetricQueryConfig";
+import MetricGraphConfig from "./MetricFormulaConfig";
+import Button, {
+  ButtonSize,
+  ButtonStyleType,
+} from "Common/UI/Components/Button/Button";
+import Text from "Common/Types/Text";
+import HorizontalRule from "Common/UI/Components/HorizontalRule/HorizontalRule";
+import MetricsAggregationType from "Common/Types/Metrics/MetricsAggregationType";
+import StartAndEndDate, {
+  StartAndEndDateType,
+} from "Common/UI/Components/Date/StartAndEndDate";
+import InBetween from "Common/Types/BaseDatabase/InBetween";
+import FieldLabelElement from "Common/UI/Components/Forms/Fields/FieldLabel";
+import Card from "Common/UI/Components/Card/Card";
+import AggregatedResult from "Common/Types/BaseDatabase/AggregatedResult";
+import API from "Common/UI/Utils/API/API";
+import { PromiseVoidFunction } from "Common/Types/FunctionTypes";
+import ComponentLoader from "Common/UI/Components/ComponentLoader/ComponentLoader";
+import ErrorMessage from "Common/UI/Components/ErrorMessage/ErrorMessage";
+import PageLoader from "Common/UI/Components/Loader/PageLoader";
+import MetricQueryConfigData from "Common/Types/Metrics/MetricQueryConfigData";
+import MetricFormulaConfigData from "Common/Types/Metrics/MetricFormulaConfigData";
+import MetricUtil from "./Utils/Metrics";
+import MetricViewData from "Common/Types/Metrics/MetricViewData";
+import MetricCharts from "./MetricCharts";
+import ConfirmModal from "Common/UI/Components/Modal/ConfirmModal";
+import JSONFunctions from "Common/Types/JSONFunctions";
+import MetricType from "Common/Models/DatabaseModels/MetricType";
+
+const getFetchRelevantState: (data: MetricViewData) => unknown = (
+  data: MetricViewData,
+) => {
+  return {
+    startAndEndDate: data.startAndEndDate
+      ? {
+          startValue: data.startAndEndDate.startValue,
+          endValue: data.startAndEndDate.endValue,
+        }
+      : null,
+    queryConfigs: data.queryConfigs.map(
+      (queryConfig: MetricQueryConfigData) => {
+        return {
+          metricQueryData: queryConfig.metricQueryData,
+        };
+      },
+    ),
+  };
+};
+
+export interface ComponentProps {
+  data: MetricViewData;
+  hideQueryElements?: boolean;
+  hideStartAndEndDate?: boolean;
+  onChange: (data: MetricViewData) => void;
+  hideCardInQueryElements?: boolean;
+  hideCardInCharts?: boolean;
+  chartCssClass?: string | undefined;
+}
+
+const MetricView: FunctionComponent<ComponentProps> = (
+  props: ComponentProps,
+): ReactElement => {
+  const [currentQueryVariable, setCurrentQueryVariable] = useState<string>(
+    Text.getLetterFromAByNumber(props.data.queryConfigs.length),
+  );
+
+  const [metricTypes, setMetricTypes] = useState<Array<MetricType>>([]);
+
+  const [
+    showCannotRemoveOneRemainingQueryError,
+    setShowCannotRemoveOneRemainingQueryError,
+  ] = useState<boolean>(false);
+
+  type GetEmptyQueryConfigFunction = () => MetricQueryConfigData;
+
+  const getEmptyQueryConfigData: GetEmptyQueryConfigFunction =
+    (): MetricQueryConfigData => {
+      const currentVar: string = currentQueryVariable;
+      setCurrentQueryVariable(Text.getNextLowercaseLetter(currentVar));
+
+      return {
+        metricAliasData: {
+          metricVariable: currentVar,
+          title: "",
+          description: "",
+          legend: "",
+          legendUnit: "",
+        },
+        metricQueryData: {
+          filterData: {
+            aggegationType: MetricsAggregationType.Avg,
+            metricName:
+              metricTypes.length > 0 && metricTypes[0] && metricTypes[0].name
+                ? metricTypes[0].name
+                : "",
+          },
+        },
+      };
+    };
+
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+  const [pageError, setPageError] = useState<string>("");
+
+  const [telemetryAttributes, setTelemetryAttributes] = useState<Array<string>>(
+    [],
+  );
+  const [telemetryAttributesLoaded, setTelemetryAttributesLoaded] =
+    useState<boolean>(false);
+  const [telemetryAttributesLoading, setTelemetryAttributesLoading] =
+    useState<boolean>(false);
+  const [telemetryAttributesError, setTelemetryAttributesError] =
+    useState<string>("");
+
+  const metricViewDataRef: React.MutableRefObject<MetricViewData> =
+    React.useRef(props.data);
+  const lastFetchSnapshotRef: React.MutableRefObject<string> = React.useRef(
+    JSON.stringify(getFetchRelevantState(props.data)),
+  );
+
+  useEffect(() => {
+    loadMetricTypes().catch((err: Error) => {
+      setPageError(API.getFriendlyErrorMessage(err as Error));
+    });
+  }, []);
+
+  useEffect(() => {
+    const hasChanged: boolean = JSONFunctions.isJSONObjectDifferent(
+      metricViewDataRef.current,
+      props.data,
+    );
+
+    if (hasChanged) {
+      setCurrentQueryVariable(
+        Text.getLetterFromAByNumber(props.data.queryConfigs.length),
+      );
+    }
+
+    const currentFetchSnapshot: string = JSON.stringify(
+      getFetchRelevantState(props.data),
+    );
+
+    const shouldFetch: boolean =
+      currentFetchSnapshot !== lastFetchSnapshotRef.current &&
+      Boolean(props.data?.startAndEndDate?.startValue) &&
+      Boolean(props.data?.startAndEndDate?.endValue);
+
+    if (shouldFetch) {
+      lastFetchSnapshotRef.current = currentFetchSnapshot;
+      fetchAggregatedResults().catch((err: Error) => {
+        setMetricResultsError(API.getFriendlyErrorMessage(err as Error));
+      });
+    }
+
+    if (hasChanged) {
+      metricViewDataRef.current = props.data;
+    }
+  }, [props.data]);
+
+  const [metricResults, setMetricResults] = useState<Array<AggregatedResult>>(
+    [],
+  );
+
+  const [isMetricResultsLoading, setIsMetricResultsLoading] =
+    useState<boolean>(false);
+  const [metricResultsError, setMetricResultsError] = useState<string>("");
+
+  const loadMetricTypes: PromiseVoidFunction = async (): Promise<void> => {
+    try {
+      setIsPageLoading(true);
+
+      const {
+        metricTypes,
+      }: {
+        metricTypes: Array<MetricType>;
+      } = await MetricUtil.loadAllMetricsTypes({
+        includeAttributes: false,
+      });
+
+      setMetricTypes(metricTypes);
+      setTelemetryAttributes([]);
+      setTelemetryAttributesLoaded(false);
+      setTelemetryAttributesLoading(false);
+      setTelemetryAttributesError("");
+
+      setIsPageLoading(false);
+      setPageError("");
+
+      /// if there's no query then set the default query and fetch results.
+      if (
+        props.data.queryConfigs.length === 0 &&
+        metricTypes.length > 0 &&
+        metricTypes[0] &&
+        metricTypes[0].name
+      ) {
+        // then  add a default query which would be the first
+        if (props.onChange) {
+          props.onChange({
+            ...props.data,
+            queryConfigs: [
+              {
+                metricAliasData: {
+                  metricVariable: "a",
+                  legend: "",
+                  title: "",
+                  description: "",
+                  legendUnit: "",
+                },
+                metricQueryData: {
+                  filterData: {
+                    metricName: metricTypes[0].name,
+                    aggegationType: MetricsAggregationType.Avg,
+                  },
+                },
+              },
+            ],
+          });
+        }
+      }
+
+      if (props.data) {
+        fetchAggregatedResults().catch((err: Error) => {
+          setMetricResultsError(API.getFriendlyErrorMessage(err as Error));
+        });
+      }
+    } catch (err) {
+      setIsPageLoading(false);
+      setPageError(API.getFriendlyErrorMessage(err as Error));
+    }
+  };
+
+  const loadTelemetryAttributes: PromiseVoidFunction =
+    async (): Promise<void> => {
+      if (telemetryAttributesLoading || telemetryAttributesLoaded) {
+        return;
+      }
+
+      try {
+        setTelemetryAttributesLoading(true);
+        setTelemetryAttributesError("");
+
+        const attributes: Array<string> =
+          await MetricUtil.getTelemetryAttributes();
+
+        setTelemetryAttributes(attributes);
+        setTelemetryAttributesLoaded(true);
+      } catch (err) {
+        setTelemetryAttributes([]);
+        setTelemetryAttributesLoaded(false);
+        setTelemetryAttributesError(
+          `We couldn't load metric attributes. ${API.getFriendlyErrorMessage(err as Error)}`,
+        );
+      } finally {
+        setTelemetryAttributesLoading(false);
+      }
+    };
+
+  const handleAdvancedFiltersToggle: (show: boolean) => void = (
+    show: boolean,
+  ): void => {
+    if (show && !telemetryAttributesLoaded && !telemetryAttributesLoading) {
+      void loadTelemetryAttributes();
+    }
+  };
+
+  const fetchAggregatedResults: PromiseVoidFunction =
+    async (): Promise<void> => {
+      setIsMetricResultsLoading(true);
+
+      if (
+        !props.data.startAndEndDate?.startValue ||
+        !props.data.startAndEndDate?.endValue
+      ) {
+        setIsMetricResultsLoading(false);
+        return;
+      }
+      try {
+        const results: Array<AggregatedResult> = await MetricUtil.fetchResults({
+          metricViewData: props.data,
+        });
+
+        setMetricResults(results);
+        setMetricResultsError("");
+      } catch (err: unknown) {
+        setMetricResultsError(API.getFriendlyErrorMessage(err as Error));
+      }
+
+      setIsMetricResultsLoading(false);
+    };
+
+  if (isPageLoading) {
+    return <PageLoader isVisible={true} />;
+  }
+
+  if (pageError) {
+    return <ErrorMessage message={pageError} />;
+  }
+
+  return (
+    <Fragment>
+      <div className="space-y-3">
+        {!props.hideStartAndEndDate && (
+          <div className="mb-5">
+            <Card>
+              <div className="-mt-5">
+                <FieldLabelElement title="Start and End Time" required={true} />
+                <StartAndEndDate
+                  type={StartAndEndDateType.DateTime}
+                  value={props.data.startAndEndDate || undefined}
+                  onValueChanged={(startAndEndDate: InBetween<Date> | null) => {
+                    if (props.onChange) {
+                      props.onChange({
+                        ...props.data,
+                        startAndEndDate: startAndEndDate,
+                      });
+                    }
+                  }}
+                />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {!props.hideQueryElements && (
+          <div className="space-y-3">
+            {props.data.queryConfigs.map(
+              (queryConfig: MetricQueryConfigData, index: number) => {
+                return (
+                  <MetricQueryConfig
+                    key={index}
+                    onChange={(data: MetricQueryConfigData) => {
+                      const newGraphConfigs: Array<MetricQueryConfigData> = [
+                        ...props.data.queryConfigs,
+                      ];
+                      newGraphConfigs[index] = data;
+                      if (props.onChange) {
+                        props.onChange({
+                          ...props.data,
+                          queryConfigs: newGraphConfigs,
+                        });
+                      }
+                    }}
+                    data={queryConfig}
+                    hideCard={props.hideCardInQueryElements}
+                    telemetryAttributes={telemetryAttributes}
+                    metricTypes={metricTypes}
+                    onAdvancedFiltersToggle={handleAdvancedFiltersToggle}
+                    attributesLoading={telemetryAttributesLoading}
+                    attributesError={telemetryAttributesError}
+                    onAttributesRetry={() => {
+                      setTelemetryAttributesLoaded(false);
+                      void loadTelemetryAttributes();
+                    }}
+                    onRemove={() => {
+                      if (props.data.queryConfigs.length === 1) {
+                        setShowCannotRemoveOneRemainingQueryError(true);
+                        return;
+                      }
+
+                      const newGraphConfigs: Array<MetricQueryConfigData> = [
+                        ...props.data.queryConfigs,
+                      ];
+                      newGraphConfigs.splice(index, 1);
+
+                      if (props.onChange) {
+                        props.onChange({
+                          ...props.data,
+                          queryConfigs: newGraphConfigs,
+                        });
+                      }
+                    }}
+                  />
+                );
+              },
+            )}
+          </div>
+        )}
+      </div>
+
+      {!props.hideQueryElements && (
+        <div className="space-y-3">
+          <div className="space-y-3">
+            {props.data.formulaConfigs.map(
+              (formulaConfig: MetricFormulaConfigData, index: number) => {
+                return (
+                  <MetricGraphConfig
+                    key={index}
+                    onDataChanged={(data: MetricFormulaConfigData) => {
+                      const newGraphConfigs: Array<MetricFormulaConfigData> = [
+                        ...props.data.formulaConfigs,
+                      ];
+                      newGraphConfigs[index] = data;
+                      if (props.onChange) {
+                        props.onChange({
+                          ...props.data,
+                          formulaConfigs: newGraphConfigs,
+                        });
+                      }
+                    }}
+                    data={formulaConfig}
+                    onRemove={() => {
+                      const newGraphConfigs: Array<MetricFormulaConfigData> = [
+                        ...props.data.formulaConfigs,
+                      ];
+                      newGraphConfigs.splice(index, 1);
+                      if (props.onChange) {
+                        props.onChange({
+                          ...props.data,
+                          formulaConfigs: newGraphConfigs,
+                        });
+                      }
+                    }}
+                  />
+                );
+              },
+            )}
+          </div>
+          <div>
+            <div className="flex -ml-3 mt-8 justify-between w-full">
+              <div>
+                <Button
+                  title="Add Metric"
+                  buttonSize={ButtonSize.Small}
+                  onClick={() => {
+                    if (props.onChange) {
+                      props.onChange({
+                        ...props.data,
+                        queryConfigs: [
+                          ...props.data.queryConfigs,
+                          getEmptyQueryConfigData(),
+                        ],
+                      });
+                    }
+                  }}
+                />
+                {/* <Button
+              title="Add Formula"
+              buttonSize={ButtonSize.Small}
+              onClick={() => {
+                setMetricViewData({
+                  ...metricViewData,
+                  formulaConfigs: [
+                    ...metricViewData.formulaConfigs,
+                    getEmptyFormulaConfigData(),
+                  ],
+                });
+              }}
+            /> */}
+              </div>
+            </div>
+          </div>
+          <HorizontalRule />
+        </div>
+      )}
+
+      {isMetricResultsLoading && <ComponentLoader />}
+
+      {metricResultsError && <ErrorMessage message={metricResultsError} />}
+
+      {!isMetricResultsLoading && !metricResultsError && (
+        <div className="grid grid-cols-1 gap-4 mt-3">
+          {/** charts */}
+          <MetricCharts
+            hideCard={props.hideCardInCharts}
+            metricResults={metricResults}
+            metricTypes={metricTypes}
+            metricViewData={props.data}
+            chartCssClass={props.chartCssClass}
+          />
+        </div>
+      )}
+
+      {showCannotRemoveOneRemainingQueryError ? (
+        <ConfirmModal
+          title={`Cannot Remove Query`}
+          description={`Cannot remove query because there must be at least one query.`}
+          isLoading={false}
+          submitButtonText={"Close"}
+          submitButtonType={ButtonStyleType.NORMAL}
+          onSubmit={() => {
+            return setShowCannotRemoveOneRemainingQueryError(false);
+          }}
+        />
+      ) : (
+        <></>
+      )}
+    </Fragment>
+  );
+};
+
+export default MetricView;
