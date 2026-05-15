@@ -22,18 +22,18 @@
       <description>Cisco Networking Academy and AWS Training and Certification credentials.</description>
     </item>
     <item>
+      <title>My Projects</title>
+      <link>http://localhost:1313/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/</guid>
+      <description>Interactive prototypes, Linux hosting, and practical hardware repair.</description>
+    </item>
+    <item>
       <title>Relevant Experience</title>
       <link>http://localhost:1313/experience/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/experience/</guid>
       <description>SRE operations, website maintenance, and technical delivery experience.</description>
-    </item>
-    <item>
-      <title>Technical Projects</title>
-      <link>http://localhost:1313/projects/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/</guid>
-      <description>Web development, Linux hosting, and practical hardware repair.</description>
     </item>
   </channel>
 </rss>

@@ -1,19 +1,31 @@
 ---
-title: "Technical Projects"
-summary: "Web development, Linux hosting, and practical hardware repair."
-keywords: ["Web Development", "Linux Home Server", "Cloudflare Tunnel", "Hardware Repair"]
+title: "My Projects"
+summary: "Interactive prototypes, Linux hosting, and practical hardware repair."
+keywords: ["P&G Consumer IQ", "Graduate Student Lifecycle", "Linux Home Server", "Hardware Repair"]
 hidemeta: true
 ---
 
 <div class="project-grid">
 
   <article class="project-card">
-    <img src="/web_server.png" alt="Website development and hosting project">
+    <img src="/consumer_iq_preview.svg" alt="P&amp;G Consumer IQ prototype dashboard preview">
     <div class="project-card-body">
-      <h3>Website Development and Hosting</h3>
+      <h3>P&amp;G Consumer IQ Prototype</h3>
       <p>
-        Built, deployed, and hosted multiple web applications for personal and small business use with HTML, CSS, JavaScript, React.js, and Cloudflare tunnelling. Led projects from concept to production with attention to UI/UX, responsive design, and reliable deployment.
+        Front-end concept app for consumer intelligence, competitor analytics, operations monitoring, AI-assisted insights, incident handling, and human handoff workflows using simulated demo data.
       </p>
+      <a class="project-view-button" href="/prototypes/consumer-iq/" target="_blank" rel="noopener noreferrer">View Page</a>
+    </div>
+  </article>
+
+  <article class="project-card">
+    <img src="/usls_lifecycle_preview.svg" alt="USLS graduate student lifecycle platform preview">
+    <div class="project-card-body">
+      <h3>USLS Graduate Student Lifecycle Platform</h3>
+      <p>
+        Thesis prototype for monitoring graduate student progress, tasks, documents, scheduling, alerts, analytics, and decision-support workflows with placeholder school data.
+      </p>
+      <a class="project-view-button" href="/prototypes/usls-graduate-lifecycle/" target="_blank" rel="noopener noreferrer">View Page</a>
     </div>
   </article>
 
@@ -22,8 +34,9 @@ hidemeta: true
     <div class="project-card-body">
       <h3>Linux Home Server</h3>
       <p>
-        Configured and managed a Linux-based home server for web and database hosting, including the environment behind a capstone thesis platform for graduate student lifecycle monitoring and analytics.
+        Configured and managed a Linux-based home server for web hosting, database-backed applications, Cloudflare Tunnel testing, service monitoring, and local deployment practice.
       </p>
+      <a class="project-view-button" href="/prototypes/home-server-lab/" target="_blank" rel="noopener noreferrer">View Page</a>
     </div>
   </article>
 
@@ -34,7 +47,7 @@ hidemeta: true
       <p>
         Repaired and sold gaming consoles and older hardware through Carousell, and performed PC diagnostics and repairs for customers. Built practical troubleshooting, component replacement, and customer service skills.
       </p>
-      <a href="https://www.carousell.ph/u/sanmig02/" target="_blank" rel="noopener noreferrer">View Page</a>
+      <a class="project-view-button" href="https://www.carousell.ph/u/sanmig02/" target="_blank" rel="noopener noreferrer">View Page</a>
     </div>
   </article>
 

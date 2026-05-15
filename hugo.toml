@@ -10,6 +10,9 @@ languageCode = "en-us"
   displayFullLangName = true
   hideFooter = true
 
+  [params.label]
+    text = "miguisanson.dev"
+
   [params.profileMode]
     enabled = true
     title = "Miguel Joaquin A. Sanson"
