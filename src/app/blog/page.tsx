@@ -16,7 +16,7 @@ export default function BlogPage() {
       title="Learning notes and build logs."
       description="Short posts about portfolio migration, homelab work, frontend prototypes, and future AI experiments."
     >
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div>
         {posts.map((post) => (
           <ContentCard
             key={post.slug}

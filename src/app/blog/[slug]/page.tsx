@@ -30,10 +30,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <PageShell eyebrow={formatDate(post.date)} title={post.title} description={post.summary}>
-      <div className="mb-8">
+      <div style={{ marginBottom: 20 }}>
         <TagList tags={post.tags} />
       </div>
-      <article className="prose-content max-w-3xl rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
+      <article className="post-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
     </PageShell>
   );
 }

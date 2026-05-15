@@ -30,16 +30,18 @@ export default async function GamePage({ params }: GamePageProps) {
 
   return (
     <PageShell eyebrow={game.status} title={game.title} description={game.description}>
-      <div className="mb-8">
+      <div style={{ marginBottom: 20 }}>
         <TagList tags={game.stack} />
       </div>
-      <div className="rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-8">
-        <h2 className="text-2xl font-extrabold">Playable area placeholder</h2>
-        <p className="mt-3 max-w-2xl text-[var(--muted)]">
+      <div className="post-entry">
+        <header className="entry-header">
+          <h2>Playable area placeholder</h2>
+        </header>
+        <div className="entry-content">
           This page is ready for an embedded HTML game, iframe, or external playable link. Controls, screenshots, and release notes can be added here as each game becomes playable.
-        </p>
+        </div>
         {game.playUrl ? (
-          <div className="mt-6">
+          <div style={{ marginTop: 20 }}>
             <ButtonLink href={game.playUrl} external>
               Play
             </ButtonLink>

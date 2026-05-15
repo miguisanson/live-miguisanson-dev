@@ -13,7 +13,7 @@ export default function ProjectsPage() {
       title="Project showcases and case studies."
       description="Interactive prototypes, infrastructure practice, and hands-on technical work. Prototype links open separate demo pages using static mock data."
     >
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="project-grid">
         {projects.map((project) => (
           <ProjectCard key={project.slug} project={project} />
         ))}

@@ -74,6 +74,25 @@ Reusable assets from the old Hugo `static/` folder were copied into the new Next
 - `REFERENCES/PG-NEXT-MVP-main`
 - `REFERENCES/CAPSTONE-USLS-MVP/References/MVP-FIGMA`
 
+## PaperMod Parity Notes
+
+The active Next.js app intentionally recreates the old PaperMod visual system instead of using a new portfolio design.
+
+Recreated from the preserved Hugo output and source files:
+
+- Header layout: `miguisanson.dev`, theme toggle, and the original About / Experience / Projects / Certifications anchor menu.
+- Homepage profile mode: centered circular image, title, subtitle, social icons, and rounded profile buttons.
+- Main content width, spacing, PaperMod CSS variables, light/dark theme colors, and mobile stacked navigation.
+- About, experience timeline, project cards, certification cards, certificate modal, and scroll-to-top button.
+- Blog/project list pages now use PaperMod-style `post-entry` cards.
+- Article/case-study pages now use PaperMod-style page headers and `post-content` typography.
+
+Known differences:
+
+- This is a Next.js recreation, so generated Hugo metadata, RSS, taxonomy archive internals, and PaperMod's exact Hugo partial output are not byte-for-byte identical.
+- The old Hugo footer was hidden through configuration; the Next.js recreation keeps that behavior and preserves the scroll-to-top control.
+- Prototype pages are served as static Next public assets and are intentionally separate from the PaperMod-styled shell.
+
 ## Future Upgrade Path
 
 Keep the site static-first until a feature truly needs backend state.

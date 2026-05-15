@@ -13,7 +13,7 @@ export default function GamesPage() {
       title="Game showcase."
       description="A space for browser games, small interaction experiments, and future playable embeds."
     >
-      <div className="grid gap-5 md:grid-cols-2">
+      <div>
         {games.map((game) => (
           <ContentCard
             key={game.slug}

@@ -33,10 +33,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <PageShell eyebrow={project.status} title={project.title} description={project.description}>
-      <div className="mb-8 flex flex-wrap items-center gap-3">
+      <div style={{ marginBottom: 20 }}>
         <TagList tags={project.tech} />
       </div>
-      <div className="mb-8 flex flex-wrap gap-3">
+      <div className="buttons" style={{ justifyContent: "flex-start", marginBottom: 20 }}>
         {project.liveUrl ? (
           <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")}>
             View Page
@@ -48,7 +48,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </ButtonLink>
         ) : null}
       </div>
-      <article className="prose-content max-w-3xl rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm" dangerouslySetInnerHTML={{ __html: markdownToHtml(writeup.body) }} />
+      <article className="post-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(writeup.body) }} />
     </PageShell>
   );
 }

@@ -18,10 +18,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" dir="auto" data-theme="auto" suppressHydrationWarning>
+      <body className="list" id="top">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                var theme = localStorage.getItem("pref-theme");
+                if (theme === "dark" || theme === "light") {
+                  document.documentElement.dataset.theme = theme;
+                } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                  document.documentElement.dataset.theme = "dark";
+                } else {
+                  document.documentElement.dataset.theme = "light";
+                }
+              })();
+            `,
+          }}
+        />
         <Header />
-        <main>{children}</main>
+        <main className="main">{children}</main>
         <Footer />
       </body>
     </html>

@@ -1,5 +1,4 @@
 import { PageShell } from "@/components/layout/PageShell";
-import { SectionHeader } from "@/components/sections/SectionHeader";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { TagList } from "@/components/ui/TagList";
 import { certifications, education, experience, profile, skills } from "@/data/profile";
@@ -11,73 +10,56 @@ export const metadata = {
 
 export default function ResumePage() {
   return (
-    <PageShell
-      eyebrow="Resume"
-      title="Miguel Joaquin A. Sanson"
-      description={`${profile.location} | ${profile.educationLine}`}
-    >
-      <div className="mb-8">
+    <PageShell eyebrow="Resume" title="Miguel Joaquin A. Sanson" description={`${profile.location} | ${profile.educationLine}`}>
+      <div className="buttons" style={{ justifyContent: "flex-start", marginBottom: 20 }}>
         <ButtonLink href={profile.resumeUrl} external>
           Download Resume
         </ButtonLink>
       </div>
 
-      <section className="mb-10">
-        <SectionHeader title="Experience" />
-        <div className="space-y-5">
-          {experience.map((item) => (
-            <article key={`${item.organization}-${item.role}`} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
-              <h3 className="text-xl font-extrabold">{item.organization}</h3>
-              <p className="mt-1 font-bold">{item.role}</p>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {item.period} | {item.location}
-              </p>
-              <p className="mt-3 text-[var(--muted)]">{item.summary}</p>
-            </article>
+      <article className="post-content">
+        <h2>Experience</h2>
+        {experience.map((item) => (
+          <section key={`${item.organization}-${item.role}`} className="post-entry">
+            <header className="entry-header">
+              <h2>{item.organization}</h2>
+            </header>
+            <div className="entry-content">
+              {item.role} | {item.period} | {item.location}
+            </div>
+            <footer className="entry-footer">{item.summary}</footer>
+          </section>
+        ))}
+
+        <h2>Projects</h2>
+        {projects.map((project) => (
+          <section key={project.slug} className="post-entry">
+            <header className="entry-header">
+              <h2>{project.title}</h2>
+            </header>
+            <div className="entry-content">{project.description}</div>
+          </section>
+        ))}
+
+        <h2>Skills</h2>
+        <TagList tags={skills} />
+
+        <h2>Certifications</h2>
+        <ul>
+          {certifications.map((certification) => (
+            <li key={certification}>{certification}</li>
           ))}
-        </div>
-      </section>
+        </ul>
 
-      <section className="mb-10">
-        <SectionHeader title="Projects" />
-        <div className="grid gap-5 md:grid-cols-2">
-          {projects.slice(0, 4).map((project) => (
-            <article key={project.slug} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
-              <h3 className="text-lg font-extrabold">{project.title}</h3>
-              <p className="mt-2 text-sm text-[var(--muted)]">{project.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-10 grid gap-8 lg:grid-cols-2">
-        <div>
-          <SectionHeader title="Skills" />
-          <TagList tags={skills} />
-        </div>
-        <div>
-          <SectionHeader title="Certifications" />
-          <ul className="space-y-2 text-[var(--muted)]">
-            {certifications.map((certification) => (
-              <li key={certification}>{certification}</li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section>
-        <SectionHeader title="Education" />
-        <div className="space-y-4">
+        <h2>Education</h2>
+        <ul>
           {education.map((item) => (
-            <article key={item.school}>
-              <h3 className="font-extrabold">{item.school}</h3>
-              <p className="text-sm text-[var(--muted)]">
-                {item.detail} | {item.period} | {item.location}
-              </p>
-            </article>
+            <li key={item.school}>
+              <strong>{item.school}</strong> - {item.detail} | {item.period} | {item.location}
+            </li>
           ))}
-        </div>
-      </section>
+        </ul>
+      </article>
     </PageShell>
   );
 }
