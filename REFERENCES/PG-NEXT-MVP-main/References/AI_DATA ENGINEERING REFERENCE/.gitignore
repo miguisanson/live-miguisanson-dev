@@ -1,6 +1,0 @@
-*.env
-*.config
-*.log
-*.cache
-__pycache__/
-.venv/
