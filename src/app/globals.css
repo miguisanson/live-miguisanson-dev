@@ -1694,6 +1694,217 @@ button#theme-toggle {
     line-height: 1.38;
 }
 
+.ai-database-list,
+.ai-candidate-table,
+.ai-knowledge-list,
+.ai-simulation-actions,
+.ai-side-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.ai-database-list,
+.ai-candidate-table {
+    margin-bottom: 16px;
+}
+
+.ai-record-button,
+.ai-candidate-row {
+    display: grid;
+    width: 100%;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--theme);
+    color: var(--primary);
+    text-align: left;
+    transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.ai-record-button:hover,
+.ai-record-button:focus-visible,
+.ai-record-button.is-active,
+.ai-candidate-row:hover,
+.ai-candidate-row:focus-visible,
+.ai-candidate-row.is-active {
+    border-color: var(--ai-accent);
+    background: var(--ai-accent-soft);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.ai-record-button strong,
+.ai-candidate-row strong {
+    color: var(--primary);
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.ai-record-button span,
+.ai-record-button small,
+.ai-candidate-row small,
+.ai-record-detail p,
+.ai-side-panel p {
+    color: var(--secondary);
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.ai-record-button small {
+    font-weight: 800;
+}
+
+.ai-record-detail {
+    display: grid;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.ai-record-detail h3,
+.ai-side-panel h3,
+.ai-subheading {
+    margin: 0;
+    color: var(--primary);
+    font-size: 0.95rem;
+    line-height: 1.25;
+}
+
+.ai-subheading {
+    margin: 14px 0 8px;
+}
+
+.ai-record-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.ai-record-meta div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 9px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-record-meta dt {
+    color: var(--secondary);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.ai-record-meta dd {
+    margin: 0;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.ai-simulation-actions {
+    grid-template-columns: 1fr;
+}
+
+.ai-simulation-actions .ai-secondary-button {
+    margin-bottom: 0;
+}
+
+.ai-candidate-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.ai-candidate-row span {
+    display: grid;
+    gap: 3px;
+}
+
+.ai-candidate-row b {
+    display: inline-flex;
+    min-width: 48px;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--ai-accent-soft);
+    color: var(--primary);
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
+.ai-token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ai-token-row span {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.ai-knowledge-list article {
+    display: grid;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-knowledge-list strong {
+    color: var(--primary);
+    font-size: 0.84rem;
+    line-height: 1.25;
+}
+
+.ai-knowledge-list span,
+.ai-knowledge-list p {
+    color: var(--secondary);
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.ai-side-panel {
+    margin-bottom: 18px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-side-panel ul {
+    display: grid;
+    gap: 7px;
+    padding-left: 18px;
+}
+
+.ai-side-panel li {
+    color: var(--content);
+    font-size: 0.8rem;
+    line-height: 1.38;
+}
+
 .footer,
 .top-link {
     color: var(--secondary);
@@ -1815,8 +2026,11 @@ button#theme-toggle {
     }
 
     .ai-wide-shell {
+        position: static;
+        left: auto;
         width: 100%;
         margin-top: 18px;
+        transform: none;
     }
 
     .ai-hero-copy,
