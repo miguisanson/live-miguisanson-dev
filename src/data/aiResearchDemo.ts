@@ -196,7 +196,7 @@ export const recruitmentJobs: RecruitmentJob[] = [
 export const candidateProfiles: CandidateProfile[] = [
   {
     id: "CAN-014",
-    name: "Candidate A",
+    name: "Sofia Reyes",
     role: "Junior QA applicant",
     stage: "New",
     skills: ["Testing", "SQL", "Bug reports", "Communication", "Capstone QA"],
@@ -209,7 +209,7 @@ export const candidateProfiles: CandidateProfile[] = [
   },
   {
     id: "CAN-027",
-    name: "Candidate B",
+    name: "Andre Lim",
     role: "Frontend support applicant",
     stage: "Screening",
     skills: ["React", "TypeScript", "Accessibility", "Debugging", "Release support"],
@@ -222,7 +222,7 @@ export const candidateProfiles: CandidateProfile[] = [
   },
   {
     id: "CAN-038",
-    name: "Candidate C",
+    name: "Camille Navarro",
     role: "People operations applicant",
     stage: "Interview",
     skills: ["HR operations", "Policy support", "Documentation", "Communication", "Ticket triage"],
@@ -235,7 +235,7 @@ export const candidateProfiles: CandidateProfile[] = [
   },
   {
     id: "CAN-041",
-    name: "Candidate D",
+    name: "Rafael Cruz",
     role: "QA automation applicant",
     stage: "Recruiter Review",
     skills: ["Testing", "Automation readiness", "Playwright", "Bug reports", "Debugging"],
@@ -286,7 +286,7 @@ export const hrPolicies: HrPolicy[] = [
 export const hrTickets: HrTicket[] = [
   {
     id: "HR-330",
-    requester: "Demo Employee 01",
+    requester: "Maya Santos",
     category: "Leave",
     priority: "Needs HR confirmation",
     question: "Can I submit a leave request for next Friday if I file the form today?",
@@ -298,7 +298,7 @@ export const hrTickets: HrTicket[] = [
   },
   {
     id: "HR-347",
-    requester: "Demo Employee 02",
+    requester: "Joel Tan",
     category: "Timesheet",
     priority: "High",
     question: "My supervisor approved most of my hours, but one overtime entry is still pending. What happens next?",
@@ -310,7 +310,7 @@ export const hrTickets: HrTicket[] = [
   },
   {
     id: "HR-352",
-    requester: "Demo Candidate 03",
+    requester: "Elena Villanueva",
     category: "Compensation",
     priority: "Needs HR confirmation",
     question: "Can HR confirm whether my sample offer range can be adjusted based on additional certification evidence?",

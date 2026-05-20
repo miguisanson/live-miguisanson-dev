@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { aiResearchModules, reviewStatuses, type ModuleId, type ReviewStatus } from "@/data/aiResearch";
 import {
   candidateProfiles,
@@ -26,6 +26,8 @@ type DraftOutput = {
   timestamp: string;
   inputSummary: string;
   guardrails: string[];
+  confidence: string;
+  aiTrace: string[];
   sections: SectionOutput[];
   codeDraft?: string;
 };
@@ -100,6 +102,13 @@ function makeQaDraft(item: QaWorkItem, environment: string): DraftOutput {
     timestamp: nowLabel(),
     inputSummary: `${item.id} ${item.featureName} in ${environment}`,
     guardrails: config.guardrails,
+    confidence: item.status === "Needs clarification" ? "Medium" : "High",
+    aiTrace: [
+      `Read ${item.id} from the seeded QA work queue.`,
+      "Compared the story, bug note, acceptance criteria, and existing coverage.",
+      "Drafted test cases, edge cases, failure points, and an E2E test skeleton.",
+      "Stopped at draft status so a human tester can approve or revise it.",
+    ],
     sections: [
       {
         title: "Test cases",
@@ -169,6 +178,13 @@ function makeRecruitmentDraft(job: RecruitmentJob, candidate: CandidateProfile):
     timestamp: nowLabel(),
     inputSummary: `${candidate.name} for ${job.title} (${score}/10 review priority)`,
     guardrails: config.guardrails,
+    confidence: score >= 7 ? "High" : score >= 4 ? "Medium" : "Low",
+    aiTrace: [
+      `Read ${job.id} and ${candidate.id} from the seeded recruiting database.`,
+      "Matched role criteria to the candidate's fictional skills and experience evidence.",
+      "Drafted recruiter-only summaries, questions, shortlist concepts, and communication text.",
+      "Blocked any auto-hire or auto-reject decision.",
+    ],
     sections: [
       {
         title: "1-10 alignment score",
@@ -240,6 +256,13 @@ function makeHrDraft(ticket: HrTicket): DraftOutput {
     timestamp: nowLabel(),
     inputSummary: `${ticket.id} ${ticket.category}: ${ticket.question}`,
     guardrails: config.guardrails,
+    confidence: policyFound ? "Medium" : "Low",
+    aiTrace: [
+      `Read ${ticket.id} from the seeded HR service queue.`,
+      "Searched the sample policy records linked to this ticket.",
+      "Drafted an HR reply, form guidance, priority, and escalation note.",
+      "Blocked payroll, salary, and final HR decisions.",
+    ],
     sections: [
       {
         title: "Policy-based answer",
@@ -304,6 +327,80 @@ export function AIPrototypeDemo({ moduleId }: { moduleId: ModuleId }) {
   return <HrAssistantWorkspace />;
 }
 
+function InfoTip({ text }: { text: string }) {
+  const tipRef = useRef<HTMLSpanElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<React.CSSProperties>({});
+
+  function openTip() {
+    const element = tipRef.current;
+    if (!element || typeof window === "undefined") {
+      setIsOpen(true);
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const margin = 12;
+    const width = Math.min(320, window.innerWidth - margin * 2);
+    const estimatedHeight = 180;
+    const preferredLeft = rect.left + rect.width / 2 - width / 2;
+    const left = Math.max(margin, Math.min(preferredLeft, window.innerWidth - width - margin));
+    const belowTop = rect.bottom + 10;
+    const top =
+      belowTop + estimatedHeight > window.innerHeight
+        ? Math.max(margin, rect.top - estimatedHeight - 10)
+        : belowTop;
+
+    setPosition({
+      left,
+      top,
+      width,
+    });
+    setIsOpen(true);
+  }
+
+  return (
+    <span
+      className="ai-info-tip"
+      ref={tipRef}
+      tabIndex={0}
+      aria-label={text}
+      onBlur={() => setIsOpen(false)}
+      onFocus={openTip}
+      onMouseEnter={openTip}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      ?
+      <span className={isOpen ? "is-visible" : ""} role="tooltip" style={position}>
+        {text}
+      </span>
+    </span>
+  );
+}
+
+function PanelTitle({ number, title, help, id }: { number: string; title: string; help: string; id?: string }) {
+  return (
+    <div className="ai-panel-title">
+      <span>{number}</span>
+      <h2 id={id}>{title}</h2>
+      <InfoTip text={help} />
+    </div>
+  );
+}
+
+function BeginnerGuide({ steps }: { steps: string[] }) {
+  return (
+    <div className="ai-beginner-guide">
+      <strong>Start here</strong>
+      <ol>
+        {steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function WorkspaceHeader({
   moduleId,
   status,
@@ -325,7 +422,10 @@ function WorkspaceHeader({
           <p>{config.summary}</p>
         </div>
         <div className="ai-module-status-card">
-          <span>Current review status</span>
+          <span>
+            Current review status{" "}
+            <InfoTip text="This tells you whether the generated answer is still a draft or has been checked by a person." />
+          </span>
           <strong>{status}</strong>
           <small>{config.operatorNote}</small>
         </div>
@@ -344,10 +444,12 @@ function OutputConsole({ output, status }: { output: DraftOutput | null; status:
   return (
     <section className="ai-output-console" aria-labelledby="ai-output-title">
       <div className="ai-output-toolbar">
-        <div className="ai-panel-title">
-          <span>02</span>
-          <h2 id="ai-output-title">Generated work draft</h2>
-        </div>
+        <PanelTitle
+          number="02"
+          title="AI draft"
+          id="ai-output-title"
+          help="This area shows what the mock AI assistant created from the selected demo record."
+        />
         {output ? <time>{output.timestamp}</time> : null}
       </div>
 
@@ -371,6 +473,19 @@ function OutputConsole({ output, status }: { output: DraftOutput | null; status:
               <dd>{status}</dd>
             </div>
           </dl>
+          <section className="ai-engine-panel" aria-label="Mock AI implementation">
+            <div>
+              <span>Mock AI implementation</span>
+              <strong>Local rules engine</strong>
+              <InfoTip text="This simulates the AI pipeline without calling a real model or needing an API key." />
+            </div>
+            <p>Confidence: {output.confidence}. The result is still only a draft.</p>
+            <ol>
+              {output.aiTrace.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </section>
           <div className="ai-output-list">
             {output.sections.map((section) => (
               <section key={section.title}>
@@ -392,8 +507,8 @@ function OutputConsole({ output, status }: { output: DraftOutput | null; status:
         </>
       ) : (
         <div className="ai-empty-panel">
-          <strong>No draft generated</strong>
-          <span>Select a demo record and run the assistant. Mock mode is active; no private data or AI API is used.</span>
+          <strong>No AI draft yet</strong>
+          <span>Choose one record on the left, then press the main AI button. No real data or API key is used.</span>
         </div>
       )}
     </section>
@@ -415,10 +530,12 @@ function ReviewConsole({
 }) {
   return (
     <aside className="ai-review-console" aria-labelledby="ai-review-title">
-      <div className="ai-panel-title">
-        <span>03</span>
-        <h2 id="ai-review-title">Human review</h2>
-      </div>
+      <PanelTitle
+        number="03"
+        title="Human review"
+        id="ai-review-title"
+        help="Use these buttons to mark what a human reviewer decided after reading the AI draft."
+      />
       <div className="ai-status-controls" role="group" aria-label="Review status">
         {reviewStatuses.map((reviewStatus) => (
           <button
@@ -506,10 +623,19 @@ function QaAssistantWorkspace() {
       <WorkspaceHeader moduleId="qa" status={status} />
       <div className="ai-workbench-grid">
         <section className="ai-input-console" aria-labelledby="ai-db-title">
-          <div className="ai-panel-title">
-            <span>01</span>
-            <h2 id="ai-db-title">QA work queue</h2>
-          </div>
+          <PanelTitle
+            number="01"
+            title="QA work queue"
+            id="ai-db-title"
+            help="Pick the feature or bug you want the AI QA Assistant to help test."
+          />
+          <BeginnerGuide
+            steps={[
+              "Click one work item.",
+              "Press Run AI QA Assistant.",
+              "Read the draft, then choose a human review status.",
+            ]}
+          />
           <div className="ai-database-list">
             {qaWorkItems.map((item) => (
               <button
@@ -522,8 +648,8 @@ function QaAssistantWorkspace() {
                 }}
               >
                 <strong>{item.featureName}</strong>
-                <span>{item.id} · {item.project}</span>
-                <small>{item.priority} · {item.status}</small>
+                <span>{item.id} - {item.project}</span>
+                <small>{item.priority} - {item.status}</small>
               </button>
             ))}
           </div>
@@ -550,9 +676,12 @@ function QaAssistantWorkspace() {
               <input value={environment} onChange={(event) => setEnvironment(event.target.value)} />
             </label>
             <div className="ai-simulation-actions">
-              <button className="ai-primary-button" type="button" onClick={generateDraft}>
-                Generate QA draft
-              </button>
+              <div className="ai-action-with-help">
+                <button className="ai-primary-button" type="button" onClick={generateDraft}>
+                  Run AI QA Assistant
+                </button>
+                <InfoTip text="This reads the selected work item and creates a draft test plan. It does not use a real API." />
+              </div>
               <button className="ai-secondary-button" type="button" onClick={addToPlan}>
                 Add cases to test plan
               </button>
@@ -654,12 +783,23 @@ function RecruitmentAssistantWorkspace() {
       <WorkspaceHeader moduleId="recruitment" status={status} />
       <div className="ai-workbench-grid">
         <section className="ai-input-console" aria-labelledby="recruitment-db-title">
-          <div className="ai-panel-title">
-            <span>01</span>
-            <h2 id="recruitment-db-title">Recruiting database</h2>
-          </div>
+          <PanelTitle
+            number="01"
+            title="Recruiting database"
+            id="recruitment-db-title"
+            help="Pick a job and a candidate. The assistant compares the candidate to the selected job only."
+          />
+          <BeginnerGuide
+            steps={[
+              "Choose one open job.",
+              "Choose one candidate name.",
+              "Press Run AI Recruitment Assistant.",
+            ]}
+          />
 
-          <h3 className="ai-subheading">Open requisitions</h3>
+          <h3 className="ai-subheading">
+            Open requisitions <InfoTip text="These are fictional job openings used by the demo." />
+          </h3>
           <div className="ai-database-list">
             {recruitmentJobs.map((job) => (
               <button
@@ -669,13 +809,15 @@ function RecruitmentAssistantWorkspace() {
                 onClick={() => setSelectedJobId(job.id)}
               >
                 <strong>{job.title}</strong>
-                <span>{job.id} · {job.department}</span>
+                <span>{job.id} - {job.department}</span>
                 <small>{job.stage}</small>
               </button>
             ))}
           </div>
 
-          <h3 className="ai-subheading">Candidate pool</h3>
+          <h3 className="ai-subheading">
+            Candidate pool <InfoTip text="These are fictional candidates. The score is only a review-priority hint." />
+          </h3>
           <div className="ai-candidate-table">
             {rankedCandidates.map((candidate) => (
               <button
@@ -702,9 +844,12 @@ function RecruitmentAssistantWorkspace() {
               ))}
             </div>
             <div className="ai-simulation-actions">
-              <button className="ai-primary-button" type="button" onClick={() => generateDraft()}>
-                Analyze candidate
-              </button>
+              <div className="ai-action-with-help">
+                <button className="ai-primary-button" type="button" onClick={() => generateDraft()}>
+                  Run AI Recruitment Assistant
+                </button>
+                <InfoTip text="This reads the selected job and candidate, then creates a recruiter-review draft." />
+              </div>
               <button className="ai-secondary-button" type="button" onClick={addSelectedCandidate}>
                 Add selected to review
               </button>
@@ -732,7 +877,7 @@ function RecruitmentAssistantWorkspace() {
               <ul>
                 {reviewList.map((candidate) => (
                   <li key={candidate.id}>
-                    {candidate.name} · {candidateScore(selectedJob, candidate)}/10 for {selectedJob.title}
+                    {candidate.name} - {candidateScore(selectedJob, candidate)}/10 for {selectedJob.title}
                   </li>
                 ))}
               </ul>
@@ -783,10 +928,19 @@ function HrAssistantWorkspace() {
       <WorkspaceHeader moduleId="hr" status={status} />
       <div className="ai-workbench-grid">
         <section className="ai-input-console" aria-labelledby="hr-db-title">
-          <div className="ai-panel-title">
-            <span>01</span>
-            <h2 id="hr-db-title">HR service queue</h2>
-          </div>
+          <PanelTitle
+            number="01"
+            title="HR service queue"
+            id="hr-db-title"
+            help="Pick one fictional HR ticket. The assistant searches sample policies and drafts a reply."
+          />
+          <BeginnerGuide
+            steps={[
+              "Choose one HR ticket.",
+              "Press Run AI HR Assistant.",
+              "Send unclear items to HR confirmation.",
+            ]}
+          />
           <div className="ai-database-list">
             {hrTickets.map((ticket) => (
               <button
@@ -795,7 +949,7 @@ function HrAssistantWorkspace() {
                 type="button"
                 onClick={() => setSelectedTicketId(ticket.id)}
               >
-                <strong>{ticket.id} · {ticket.category}</strong>
+                <strong>{ticket.id} - {ticket.category}</strong>
                 <span>{ticket.requester}</span>
                 <small>{ticketStatus[ticket.id] ?? ticket.priority}</small>
               </button>
@@ -832,9 +986,12 @@ function HrAssistantWorkspace() {
             </div>
 
             <div className="ai-simulation-actions">
-              <button className="ai-primary-button" type="button" onClick={generateDraft}>
-                Draft HR response
-              </button>
+              <div className="ai-action-with-help">
+                <button className="ai-primary-button" type="button" onClick={generateDraft}>
+                  Run AI HR Assistant
+                </button>
+                <InfoTip text="This reads the selected HR ticket and matching sample policies, then creates a draft reply." />
+              </div>
               <button className="ai-secondary-button" type="button" onClick={() => routeTicket("Needs HR confirmation")}>
                 Send to HR confirmation
               </button>

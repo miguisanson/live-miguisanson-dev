@@ -118,7 +118,7 @@ export const aiResearchModules = {
       roleCriteria:
         "Testing fundamentals, clear bug reports, basic SQL, communication, attention to detail, and willingness to learn Playwright.",
       candidateProfile:
-        "Candidate A completed an IT degree, built classroom web projects, wrote manual test notes for a capstone app, and used SQL in coursework.",
+        "Sofia Reyes completed an IT degree, built classroom web projects, wrote manual test notes for a capstone app, and used SQL in coursework.",
       skillCategories: "Testing, SQL, Communication, Automation readiness",
     },
   },
