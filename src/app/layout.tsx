@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | miguisanson.dev",
   },
   description:
-    "Miguel Joaquin A. Sanson's personal technology hub for portfolio work, project case studies, lab demos, games, and learning notes.",
+    "Miguel Joaquin A. Sanson's personal technology hub for portfolio work, project case studies, AI research prototypes, and learning notes.",
 };
 
 export default function RootLayout({

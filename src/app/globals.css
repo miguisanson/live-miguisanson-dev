@@ -984,6 +984,411 @@ button#theme-toggle {
     background: var(--theme);
 }
 
+.ai-research-page {
+    display: grid;
+    gap: 24px;
+    margin: 30px 0;
+}
+
+.ai-overview,
+.ai-prototype-card,
+.ai-module,
+.ai-log-section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--entry);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06);
+}
+
+.ai-overview {
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+}
+
+.ai-overview p {
+    margin: 0;
+    color: var(--primary);
+    font-size: 0.98rem;
+    line-height: 1.55;
+}
+
+.ai-workflow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.ai-workflow-step {
+    display: flex;
+    min-height: 72px;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-workflow-step span {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--theme);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ai-workflow-step strong {
+    color: var(--primary);
+    font-size: 0.84rem;
+    line-height: 1.25;
+}
+
+.ai-prototype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+
+.ai-prototype-card {
+    display: flex;
+    min-height: 220px;
+    flex-direction: column;
+    padding: 18px;
+}
+
+.ai-card-kicker {
+    margin-bottom: 6px;
+    color: var(--secondary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ai-prototype-card h2,
+.ai-section-heading h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.18rem;
+    line-height: 1.25;
+}
+
+.ai-prototype-card p {
+    flex: 1;
+    margin: 12px 0 16px;
+    color: var(--primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.ai-module,
+.ai-log-section {
+    scroll-margin-top: 88px;
+    padding: 18px;
+}
+
+.ai-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.ai-status-pill,
+.ai-draft-label,
+.ai-baseline-guardrails span,
+.ai-guardrails span,
+.ai-review-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.ai-status-pill {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    background: var(--code-bg);
+    color: var(--primary);
+}
+
+.ai-module-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 18px;
+}
+
+.ai-baseline-guardrails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+.ai-baseline-guardrails span {
+    padding: 5px 8px;
+    background: var(--code-bg);
+    color: var(--primary);
+}
+
+.ai-form {
+    display: grid;
+    gap: 12px;
+}
+
+.ai-field {
+    display: grid;
+    gap: 6px;
+}
+
+.ai-field span {
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.ai-field input,
+.ai-field textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--theme);
+    color: var(--primary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    outline: none;
+}
+
+.ai-field input {
+    min-height: 42px;
+    padding: 8px 10px;
+}
+
+.ai-field textarea {
+    resize: vertical;
+    padding: 10px;
+}
+
+.ai-field input:focus,
+.ai-field textarea:focus,
+.ai-review-controls button:focus-visible,
+.ai-action-button:focus-visible {
+    border-color: var(--primary);
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.ai-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 8px 14px;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--theme);
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1.2;
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+.ai-action-button:hover {
+    opacity: 0.86;
+    transform: translateY(-1px);
+}
+
+.ai-output-panel {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-output-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--entry);
+}
+
+.ai-output-header h3 {
+    margin: 6px 0 0;
+    color: var(--primary);
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.ai-output-header time,
+.ai-log-entry time {
+    color: var(--secondary);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.ai-draft-label {
+    padding: 4px 8px;
+    background: var(--primary);
+    color: var(--theme);
+}
+
+.ai-guardrails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 14px 14px 0;
+}
+
+.ai-guardrails span {
+    padding: 5px 8px;
+    background: var(--entry);
+    color: var(--primary);
+}
+
+.ai-input-summary {
+    margin: 14px;
+    color: var(--primary);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.ai-output-sections {
+    display: grid;
+    gap: 12px;
+    padding: 0 14px 14px;
+}
+
+.ai-output-sections section {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--entry);
+}
+
+.ai-output-sections h4 {
+    margin: 0 0 8px;
+    color: var(--primary);
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.ai-output-sections ul {
+    margin: 0;
+    padding-inline-start: 18px;
+}
+
+.ai-output-sections li {
+    margin-top: 5px;
+    color: var(--primary);
+    font-size: 0.83rem;
+    line-height: 1.42;
+}
+
+.ai-output-sections pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--code-block-bg);
+    color: rgb(245, 245, 245);
+    font-size: 0.76rem;
+    line-height: 1.45;
+    white-space: pre;
+}
+
+.ai-review-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 14px 14px;
+}
+
+.ai-review-controls button {
+    min-height: 34px;
+    padding: 6px 10px;
+    background: var(--entry);
+    color: var(--primary);
+    transition:
+        background-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.ai-review-controls button:hover,
+.ai-review-controls button.is-active {
+    background: var(--primary);
+    color: var(--theme);
+    transform: translateY(-1px);
+}
+
+.ai-empty-state {
+    margin: 0;
+    padding: 16px;
+    color: var(--secondary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.ai-log-list {
+    display: grid;
+    gap: 10px;
+}
+
+.ai-log-entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
+.ai-log-entry strong {
+    display: block;
+    color: var(--primary);
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.ai-log-entry p {
+    margin: 4px 0 0;
+    color: var(--secondary);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.ai-log-entry > div:last-child {
+    display: grid;
+    justify-items: end;
+    gap: 3px;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
 .footer,
 .top-link {
     color: var(--secondary);
@@ -1086,6 +1491,30 @@ button#theme-toggle {
     #menu a {
         font-size: 1rem;
         line-height: 1.25;
+    }
+
+    .ai-section-heading,
+    .ai-output-header,
+    .ai-log-entry {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-section-heading,
+    .ai-output-header {
+        flex-direction: column;
+    }
+
+    .ai-module-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-output-header time,
+    .ai-log-entry time {
+        white-space: normal;
+    }
+
+    .ai-log-entry > div:last-child {
+        justify-items: start;
     }
 }
 
