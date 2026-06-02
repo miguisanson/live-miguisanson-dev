@@ -155,7 +155,7 @@ export default function HomePage() {
                   <p>{project.description}</p>
                   {project.liveUrl ? (
                     <a className="project-view-button" href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      View Page
+                      {project.liveLabel ?? "View Page"}
                     </a>
                   ) : null}
                 </div>

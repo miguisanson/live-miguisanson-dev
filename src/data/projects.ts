@@ -1,3 +1,5 @@
+import { hereToSlayGame } from "@/data/games";
+
 export type Project = {
   slug: string;
   title: string;
@@ -6,6 +8,7 @@ export type Project = {
   tech: string[];
   image?: string;
   liveUrl?: string;
+  liveLabel?: string;
   githubUrl?: string;
   featured?: boolean;
 };
@@ -53,6 +56,19 @@ export const projects: Project[] = [
     tech: ["Diagnostics", "Repair", "Troubleshooting", "Customer support"],
     image: "/hardware_repair.png",
     liveUrl: "https://www.carousell.ph/u/sanmig02/",
+  },
+  {
+    slug: "here-to-slay-liveboard",
+    title: hereToSlayGame.title,
+    description:
+      "A browser-based multiplayer virtual tabletop for playing Here to Slay with friends, backed by a Spring Boot WebSocket service and an option to host a private lobby.",
+    status: "Live Demo",
+    tech: ["Java 21", "Spring Boot", "WebSockets", "Docker", "JavaScript"],
+    image: "/here_to_slay_preview.svg",
+    liveUrl: hereToSlayGame.playUrl,
+    liveLabel: "Play Game",
+    githubUrl: hereToSlayGame.githubUrl,
+    featured: true,
   },
 ];
 

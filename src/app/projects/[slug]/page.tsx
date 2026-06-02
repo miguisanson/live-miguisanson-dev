@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <div className="buttons" style={{ justifyContent: "flex-start", marginBottom: 20 }}>
         {project.liveUrl ? (
           <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")}>
-            View Page
+            {project.liveLabel ?? "View Page"}
           </ButtonLink>
         ) : null}
         {project.githubUrl ? (

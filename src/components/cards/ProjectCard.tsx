@@ -23,7 +23,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </ButtonLink>
           {project.liveUrl ? (
             <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")} variant="secondary">
-              View Page
+              {project.liveLabel ?? "View Page"}
             </ButtonLink>
           ) : null}
           {project.githubUrl ? (

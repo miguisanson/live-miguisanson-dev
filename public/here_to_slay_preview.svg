@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" role="img" aria-labelledby="title description">
+  <title id="title">Here to Slay Online Tabletop preview</title>
+  <desc id="description">A stylized virtual tabletop with cards and multiplayer seats.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#172554"/>
+      <stop offset="0.55" stop-color="#312e81"/>
+      <stop offset="1" stop-color="#581c87"/>
+    </linearGradient>
+    <linearGradient id="table" x1="0" x2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#115e59"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="460" fill="url(#background)"/>
+  <circle cx="78" cy="72" r="96" fill="#ffffff" opacity="0.05"/>
+  <circle cx="735" cy="400" r="160" fill="#ffffff" opacity="0.05"/>
+  <rect x="124" y="146" width="552" height="250" rx="48" fill="url(#table)" stroke="#99f6e4" stroke-width="4"/>
+  <rect x="168" y="194" width="84" height="124" rx="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="4" transform="rotate(-8 210 256)"/>
+  <rect x="282" y="182" width="84" height="124" rx="9" fill="#dbeafe" stroke="#60a5fa" stroke-width="4" transform="rotate(4 324 244)"/>
+  <rect x="396" y="194" width="84" height="124" rx="9" fill="#fce7f3" stroke="#f472b6" stroke-width="4" transform="rotate(-3 438 256)"/>
+  <rect x="510" y="182" width="84" height="124" rx="9" fill="#dcfce7" stroke="#4ade80" stroke-width="4" transform="rotate(7 552 244)"/>
+  <circle cx="400" cy="124" r="25" fill="#fbbf24" stroke="#fef3c7" stroke-width="5"/>
+  <circle cx="400" cy="418" r="25" fill="#38bdf8" stroke="#dbeafe" stroke-width="5"/>
+  <circle cx="98" cy="270" r="25" fill="#fb7185" stroke="#ffe4e6" stroke-width="5"/>
+  <circle cx="702" cy="270" r="25" fill="#a78bfa" stroke="#ede9fe" stroke-width="5"/>
+  <text x="42" y="62" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="700">Here to Slay Online Tabletop</text>
+  <text x="44" y="99" fill="#c7d2fe" font-family="Arial, sans-serif" font-size="20">Browser-based multiplayer LiveBoard demo</text>
+  <rect x="579" y="35" width="175" height="46" rx="23" fill="#ffffff"/>
+  <text x="666.5" y="64" fill="#312e81" font-family="Arial, sans-serif" font-size="17" font-weight="700" text-anchor="middle">PLAY GAME</text>
+</svg>
