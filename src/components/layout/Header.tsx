@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountMenu } from "@/components/auth/AccountMenu";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const navItems = [
@@ -29,6 +30,9 @@ export function Header() {
               </Link>
             </li>
           ))}
+          <li>
+            <AccountMenu />
+          </li>
         </ul>
       </nav>
     </header>

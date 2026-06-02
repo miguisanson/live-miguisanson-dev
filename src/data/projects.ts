@@ -61,10 +61,10 @@ export const projects: Project[] = [
     slug: "here-to-slay-liveboard",
     title: hereToSlayGame.title,
     description:
-      "A browser-based multiplayer virtual tabletop for playing Here to Slay with friends, backed by a Spring Boot WebSocket service and an option to host a private lobby.",
+      "Play Here to Slay online with friends using a browser-based multiplayer virtual tabletop.",
     status: "Live Demo",
     tech: ["Java 21", "Spring Boot", "WebSockets", "Docker", "JavaScript"],
-    image: "/here_to_slay_preview.svg",
+    image: "/here_to_slay_preview.webp",
     liveUrl: hereToSlayGame.playUrl,
     liveLabel: "Play Game",
     githubUrl: hereToSlayGame.githubUrl,

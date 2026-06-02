@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from "node:child_process";
+import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,6 +10,33 @@ const nextScript = path.join(repoRoot, "node_modules", "next", "dist", "bin", "n
 const liveboardScript = path.join(repoRoot, "scripts", "liveboard.mjs");
 const children = new Set();
 let stopping = false;
+
+function getPort(name, fallback) {
+  const port = process.env[name] ?? fallback;
+  if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535) {
+    throw new Error(`${name} must be a valid TCP port. Received: ${port}`);
+  }
+  return Number(port);
+}
+
+function isPortListening(port) {
+  return new Promise((resolve) => {
+    const socket = net.createConnection({ host: "127.0.0.1", port });
+    socket.setTimeout(500);
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
 
 function start(command, args) {
   const child = spawn(command, args, {
@@ -62,5 +90,21 @@ process.once("SIGTERM", () => stopAll("SIGTERM"));
 process.once("exit", () => stopAll("SIGTERM"));
 
 console.log("[dev:all] Starting the portfolio and private LiveBoard lobby...");
-start(process.execPath, [nextScript, "dev"]);
-start(process.execPath, [liveboardScript, "start"]);
+const portfolioPort = getPort("PORT", "3000");
+const lobbyPort = getPort("LIVEBOARD_PORT", "5000");
+
+if (await isPortListening(portfolioPort)) {
+  console.log(`[dev:all] Port ${portfolioPort} is already in use. Leaving the existing portfolio server running.`);
+} else {
+  start(process.execPath, [nextScript, "dev", "-p", String(portfolioPort)]);
+}
+
+if (await isPortListening(lobbyPort)) {
+  console.log(`[dev:all] Port ${lobbyPort} is already in use. Leaving the existing lobby server running.`);
+} else {
+  start(process.execPath, [liveboardScript, "start"]);
+}
+
+if (children.size === 0) {
+  console.log("[dev:all] Both services were already running.");
+}

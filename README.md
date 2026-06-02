@@ -15,6 +15,7 @@ Miguel Joaquin A. Sanson's personal technology hub, now transitioning from a Hug
 
 ```bash
 npm install
+npm run setup:local
 npm run dev
 ```
 
@@ -24,7 +25,13 @@ Run the portfolio and your private Here to Slay lobby together:
 npm run dev:all
 ```
 
-The first lobby launch downloads the latest LiveBoard release JAR into `.runtime/liveboard/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
+`npm run setup:local` creates `.env.local`, starts PostgreSQL through Docker Compose when Docker is installed, and applies the account tables. If Docker is not installed, configure `DATABASE_URL` for an existing PostgreSQL server and run `npm run auth:migrate`.
+
+The first lobby launch downloads a private Maven runtime into `.runtime/maven/`, clones the pinned upstream LiveBoard source into `.runtime/liveboard-source/`, applies `patches/liveboard-account.patch`, and caches the customized JAR in `.runtime/liveboard/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
+
+Create and verify an account from the portfolio header, then use the Here to Slay project card. The protected launch route issues a short-lived signed ticket and opens the lobby. The lobby verifies that ticket before accepting the WebSocket connection.
+
+You can run `npm run dev:all` again if one service is already active. It leaves occupied ports alone and starts only the missing service.
 
 Build production output:
 
@@ -40,7 +47,7 @@ npm run start
 
 ## Private Here to Slay Lobby
 
-The LiveBoard multiplayer lobby is a separate Java service. Java 21 or later is required, but Maven is not required for the release JAR workflow.
+The LiveBoard multiplayer lobby is a separate Java service. Java 21 or later is required. A system Maven installation is optional because the launcher downloads a private copy when needed.
 
 Start only the private lobby:
 
@@ -51,12 +58,27 @@ npm run game:dev
 Available commands:
 
 ```text
-npm run game:setup   Download the latest release JAR if it is missing
-npm run game:update  Replace the cached JAR with the latest release
-npm run game:dev     Download if needed, then start the lobby on port 5000
+npm run game:setup   Build the customized lobby JAR if it is missing
+npm run game:build   Rebuild the customized lobby JAR
+npm run game:update  Alias for rebuilding the customized lobby JAR
+npm run game:dev     Build if needed, then start the lobby on port 5000
 npm run game:start   Production alias for starting the lobby
 npm run dev:all      Start the Next.js dev server and private lobby together
 ```
+
+## Accounts
+
+The portfolio uses Better Auth with PostgreSQL. It supports:
+
+- Signup with one normalized email and one normalized username per account
+- Verification emails and resend support
+- Login with username or email plus password
+- Password reset emails
+- Database-backed auth rate limits
+- Optional Cloudflare Turnstile protection
+- Verified-account tickets for Here to Slay player identities
+
+During local development, verification and reset links print in the Next.js terminal when `RESEND_API_KEY` is blank. Set `RESEND_API_KEY` and `AUTH_EMAIL_FROM` to deliver real email. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
 
 To use a different lobby port:
 
@@ -76,21 +98,33 @@ npm run game:start
 `localhost:5000` works only on the computer running Java. To let website visitors or friends join, expose the lobby through a stable Cloudflare Tunnel, reverse proxy, or another hosting provider. Before building the portfolio, create `.env.local`:
 
 ```env
+DATABASE_URL=postgresql://USER:PASSWORD@DATABASE_HOST:5432/DATABASE_NAME
+BETTER_AUTH_SECRET=GENERATE_A_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
+BETTER_AUTH_URL=https://example.com
+GAME_TICKET_SECRET=GENERATE_A_DIFFERENT_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
 NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.example.com/
+LIVEBOARD_AUTH_REQUIRED=true
+RESEND_API_KEY=re_...
+AUTH_EMAIL_FROM=miguisanson.dev <accounts@example.com>
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
+TURNSTILE_SECRET_KEY=...
 ```
 
-Then rebuild the portfolio:
+Then apply migrations and rebuild both applications:
 
 ```bash
+npm run auth:migrate
 npm run build
+npm run game:build
 ```
 
 ### Ubuntu Service
 
-Install Node.js, npm, and Java 21 or later on the Ubuntu server. After cloning the repository:
+Install Git, Node.js 22 or later, npm, and Java 21 or later on the Ubuntu server. Install Docker if you want the included PostgreSQL container, or use a managed PostgreSQL URL. After cloning the repository:
 
 ```bash
 npm install
+npm run setup:local
 npm run game:setup
 sudo cp deploy/liveboard.service.example /etc/systemd/system/liveboard.service
 sudoedit /etc/systemd/system/liveboard.service
@@ -99,7 +133,7 @@ sudo systemctl enable --now liveboard
 sudo systemctl status liveboard
 ```
 
-Edit `YOUR_UBUNTU_USER` and `WorkingDirectory` in the copied service file before starting it. The service restarts the Java lobby automatically after failures or server reboots.
+Edit `YOUR_UBUNTU_USER`, `WorkingDirectory`, and `.env.local` before starting it. The service restarts the Java lobby automatically after failures or server reboots. Run the Next.js portfolio behind your normal reverse proxy and keep the same `.env.local` available to it.
 
 ## Current Structure
 
