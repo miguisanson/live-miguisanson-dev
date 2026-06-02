@@ -1,5 +1,5 @@
 export const hereToSlayGame = {
   title: "Here to Slay Online Tabletop",
-  playUrl: "https://lancorc.github.io/LiveBoard/",
+  playUrl: process.env.NEXT_PUBLIC_HERE_TO_SLAY_URL ?? "http://localhost:5000/",
   githubUrl: "https://github.com/LanCorC/LiveBoard",
 } as const;

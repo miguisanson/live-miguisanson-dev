@@ -18,6 +18,14 @@ npm install
 npm run dev
 ```
 
+Run the portfolio and your private Here to Slay lobby together:
+
+```bash
+npm run dev:all
+```
+
+The first lobby launch downloads the latest LiveBoard release JAR into `.runtime/liveboard/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
+
 Build production output:
 
 ```bash
@@ -29,6 +37,69 @@ Run the production server after a successful build:
 ```bash
 npm run start
 ```
+
+## Private Here to Slay Lobby
+
+The LiveBoard multiplayer lobby is a separate Java service. Java 21 or later is required, but Maven is not required for the release JAR workflow.
+
+Start only the private lobby:
+
+```bash
+npm run game:dev
+```
+
+Available commands:
+
+```text
+npm run game:setup   Download the latest release JAR if it is missing
+npm run game:update  Replace the cached JAR with the latest release
+npm run game:dev     Download if needed, then start the lobby on port 5000
+npm run game:start   Production alias for starting the lobby
+npm run dev:all      Start the Next.js dev server and private lobby together
+```
+
+To use a different lobby port:
+
+```bash
+LIVEBOARD_PORT=5050 npm run game:start
+```
+
+In PowerShell:
+
+```powershell
+$env:LIVEBOARD_PORT = "5050"
+npm run game:start
+```
+
+### Public Access
+
+`localhost:5000` works only on the computer running Java. To let website visitors or friends join, expose the lobby through a stable Cloudflare Tunnel, reverse proxy, or another hosting provider. Before building the portfolio, create `.env.local`:
+
+```env
+NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.example.com/
+```
+
+Then rebuild the portfolio:
+
+```bash
+npm run build
+```
+
+### Ubuntu Service
+
+Install Node.js, npm, and Java 21 or later on the Ubuntu server. After cloning the repository:
+
+```bash
+npm install
+npm run game:setup
+sudo cp deploy/liveboard.service.example /etc/systemd/system/liveboard.service
+sudoedit /etc/systemd/system/liveboard.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now liveboard
+sudo systemctl status liveboard
+```
+
+Edit `YOUR_UBUNTU_USER` and `WorkingDirectory` in the copied service file before starting it. The service restarts the Java lobby automatically after failures or server reboots.
 
 ## Current Structure
 

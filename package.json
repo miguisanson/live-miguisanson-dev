@@ -4,8 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "node scripts/dev-all.mjs",
     "build": "next build",
     "start": "next start",
+    "game:setup": "node scripts/liveboard.mjs setup",
+    "game:update": "node scripts/liveboard.mjs setup --refresh",
+    "game:dev": "node scripts/liveboard.mjs start",
+    "game:start": "node scripts/liveboard.mjs start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
