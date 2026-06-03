@@ -41,6 +41,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")}>
             {project.liveLabel ?? "View Page"}
           </ButtonLink>
+        ) : project.liveLabel ? (
+          <button className="project-view-button project-view-button-disabled" type="button" disabled>
+            {project.liveLabel}
+          </button>
         ) : null}
         {project.githubUrl ? (
           <ButtonLink href={project.githubUrl} external variant="secondary">

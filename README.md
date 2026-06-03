@@ -13,6 +13,27 @@ Miguel Joaquin A. Sanson's personal technology hub, now transitioning from a Hug
 
 ## Quick Start
 
+Fully automated bootstrap from a fresh machine:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap-windows.ps1
+```
+
+```bash
+bash scripts/bootstrap-ubuntu.sh
+```
+
+If npm is already available, the same bootstrap scripts can also be run as:
+
+```bash
+npm run bootstrap:windows
+npm run bootstrap:ubuntu
+```
+
+The bootstrap scripts install what they can: Node.js, Java 21, npm packages, `.env.local`, and auth migrations. Local account data defaults to a SQLite file at `.runtime/auth.sqlite`, so Docker is not required for normal development. Docker/PostgreSQL is only used if you explicitly set `MIGUISANSON_USE_DOCKER_POSTGRES=1` or provide a PostgreSQL `DATABASE_URL`.
+
+If Node.js and npm are already installed:
+
 ```bash
 npm install
 npm run setup:local
@@ -25,7 +46,7 @@ Run the portfolio and your private Here to Slay lobby together:
 npm run dev:all
 ```
 
-`npm run setup:local` creates `.env.local`, starts PostgreSQL through Docker Compose when Docker is installed, and applies the account tables. If Docker is not installed, configure `DATABASE_URL` for an existing PostgreSQL server and run `npm run auth:migrate`.
+`npm run setup:local` creates `.env.local`, installs missing npm packages, attempts to install Java 21 where the OS package manager supports it, creates a local SQLite auth database, and applies the account tables. For production or shared deployments, configure `DATABASE_URL` for hosted PostgreSQL and run `npm run auth:migrate`.
 
 The first lobby launch downloads a private Maven runtime into `.runtime/maven/`, builds the local source in `games/here-to-slay/`, and caches the JAR in `.runtime/games/here-to-slay/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
 
@@ -68,7 +89,7 @@ npm run dev:all      Start the Next.js dev server and private lobby together
 
 ## Accounts
 
-The portfolio uses Better Auth with PostgreSQL. It supports:
+The portfolio uses Better Auth with a local SQLite database for development and PostgreSQL for hosted or production deployments. It supports:
 
 - Signup with one normalized email and one normalized username per account
 - Verification emails and resend support
@@ -78,7 +99,31 @@ The portfolio uses Better Auth with PostgreSQL. It supports:
 - Optional Cloudflare Turnstile protection
 - Verified-account tickets for Here to Slay player identities
 
-During local development, verification and reset links print in the Next.js terminal when `RESEND_API_KEY` is blank. Set `RESEND_API_KEY` and `AUTH_EMAIL_FROM` to deliver real email. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
+During local development, verification and reset links print in the Next.js terminal only when no email provider is configured. You can send real email with either `RESEND_API_KEY` plus `AUTH_EMAIL_FROM`, or generic SMTP with `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `AUTH_EMAIL_FROM`. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
+
+You can test the whole account flow on Windows at `http://localhost:3000`. Real internet users cannot use your Windows `localhost`; for public signups, deploy the Next.js app on the Ubuntu server or another public host, set `BETTER_AUTH_URL` to the public HTTPS site, and configure Resend or SMTP. In production, signup, resend verification, and password reset are blocked if no email provider is configured.
+
+Account creation rules are intentionally simple:
+
+- Email must be a normal public email address such as `name@gmail.com`, `name@outlook.com`, or `name@example.com`.
+- Username must be 3-30 characters and can use letters, numbers, dots, and underscores.
+- Password must be 12-128 characters, cannot start or end with a space, cannot be a common weak password, and cannot contain the username or email name.
+- Email verification stays enabled. Unverified accounts cannot log in or launch Here to Slay.
+
+For a quick Windows test with Gmail SMTP, use an App Password:
+
+```env
+AUTH_EMAIL_FROM=Miguel Sanson <miguelsanson21@gmail.com>
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=miguelsanson21@gmail.com
+SMTP_PASS=YOUR_16_CHARACTER_GMAIL_APP_PASSWORD
+```
+
+Normal Gmail account passwords will not work for SMTP. You need Google 2-Step Verification enabled and then create an App Password in your Google account.
+
+Docker is not required for local accounts. To force the bundled Docker PostgreSQL container instead of SQLite, run setup with `MIGUISANSON_USE_DOCKER_POSTGRES=1`.
 
 To use a different lobby port:
 
@@ -106,6 +151,11 @@ NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.example.com/
 HERE_TO_SLAY_AUTH_REQUIRED=true
 RESEND_API_KEY=re_...
 AUTH_EMAIL_FROM=miguisanson.dev <accounts@example.com>
+SMTP_HOST=
+SMTP_PORT=
+SMTP_SECURE=
+SMTP_USER=
+SMTP_PASS=
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
 TURNSTILE_SECRET_KEY=...
 ```
@@ -120,11 +170,10 @@ npm run game:build
 
 ### Ubuntu Service
 
-Install Git, Node.js 22 or later, npm, and Java 21 or later on the Ubuntu server. Install Docker if you want the included PostgreSQL container, or use a managed PostgreSQL URL. After cloning the repository:
+After cloning the repository on an Ubuntu server, run the bootstrap script to install Node.js 22, Java 21, npm packages, and the local auth database setup where permissions allow:
 
 ```bash
-npm install
-npm run setup:local
+bash scripts/bootstrap-ubuntu.sh
 npm run game:setup
 sudo cp deploy/here-to-slay.service.example /etc/systemd/system/here-to-slay.service
 sudoedit /etc/systemd/system/here-to-slay.service
@@ -162,7 +211,8 @@ REFERENCES/             # Source reference projects used for prototype migration
 - `/about` - about, interests, skills, education
 - `/resume` - resume-style page
 - `/blog` and `/blog/[slug]` - Markdown learning notes
-- `/projects` and `/projects/[slug]` - project listing and case studies
+- `/projects` - redirects to `/resume`
+- `/projects/[slug]` - project case studies
 - `/games` and `/games/[slug]` - game showcase placeholders
 - `/lab` - frontend proof-of-concept demos
 - `/lab/ai-workout-planner` - mock AI workout planner
@@ -170,7 +220,6 @@ REFERENCES/             # Source reference projects used for prototype migration
 - `/lab/dashboard-demo` - mock analytics dashboard
 - `/prototypes/consumer-iq/` - static P&G Consumer IQ prototype bundle
 - `/prototypes/usls-graduate-lifecycle/` - static USLS graduate lifecycle prototype bundle
-- `/prototypes/home-server-lab/` - static homelab dashboard placeholder
 
 ## Migration Notes
 

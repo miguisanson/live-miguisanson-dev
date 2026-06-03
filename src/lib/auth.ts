@@ -1,27 +1,74 @@
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { captcha, username } from "better-auth/plugins";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { Pool } from "pg";
-import { sendTransactionalEmail } from "./email";
+import {
+  accountPolicy,
+  normalizeEmailInput,
+  normalizeUsernameInput,
+  validateAccountPassword,
+  validateEmailAddress,
+  validateUsername,
+} from "./account-policy";
+import { hasTransactionalEmailProvider, sendTransactionalEmail } from "./email";
 
-const localDatabaseUrl = "postgresql://miguisanson:miguisanson_dev@localhost:5432/miguisanson_dev";
 const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
 
 function emailHtml(message: string, url: string) {
   return `<p>${message}</p><p><a href="${url}">${url}</a></p>`;
 }
 
+function getDatabase() {
+  if (process.env.DATABASE_URL) {
+    return new Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+  }
+
+  const sqliteFilename = path.basename(process.env.AUTH_SQLITE_PATH ?? "auth.sqlite");
+  const sqlitePath = path.join(process.cwd(), ".runtime", sqliteFilename);
+  mkdirSync(path.dirname(sqlitePath), { recursive: true });
+  return new DatabaseSync(sqlitePath);
+}
+
+function rejectSignup(message: string): never {
+  throw new APIError("BAD_REQUEST", { message });
+}
+
+function stringBodyValue(body: unknown, key: string) {
+  if (!body || typeof body !== "object" || !(key in body)) {
+    return undefined;
+  }
+  const value = (body as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function updatedBody(ctx: { body?: unknown }, updates: Record<string, string>) {
+  return {
+    context: {
+      body: {
+        ...(ctx.body && typeof ctx.body === "object" ? ctx.body : {}),
+        ...updates,
+      },
+    },
+  };
+}
+
 export const auth = betterAuth({
   appName: "miguisanson.dev",
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL ?? localDatabaseUrl,
-  }),
+  database: getDatabase(),
   disabledPaths: ["/is-username-available"],
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    minPasswordLength: accountPolicy.passwordMinLength,
+    maxPasswordLength: accountPolicy.passwordMaxLength,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       void sendTransactionalEmail({
@@ -56,11 +103,73 @@ export const auth = betterAuth({
       "/request-password-reset": { window: 60, max: 3 },
     },
   },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (
+        process.env.NODE_ENV === "production" &&
+        ["/sign-up/email", "/send-verification-email", "/request-password-reset"].includes(ctx.path) &&
+        !hasTransactionalEmailProvider()
+      ) {
+        throw new APIError("INTERNAL_SERVER_ERROR", {
+          message: "Email delivery is not configured. Set RESEND_API_KEY or SMTP settings before enabling public accounts.",
+        });
+      }
+
+      const updates: Record<string, string> = {};
+      const email = stringBodyValue(ctx.body, "email");
+      if (
+        email &&
+        ["/sign-up/email", "/sign-in/email", "/send-verification-email", "/request-password-reset"].includes(ctx.path)
+      ) {
+        const normalizedEmail = normalizeEmailInput(email);
+        updates.email = normalizedEmail;
+        if (ctx.path === "/sign-up/email") {
+          const emailError = validateEmailAddress(normalizedEmail);
+          if (emailError) {
+            rejectSignup(emailError);
+          }
+        }
+      }
+
+      if (ctx.path === "/sign-up/email") {
+        const usernameValue = stringBodyValue(ctx.body, "username") ?? stringBodyValue(ctx.body, "name") ?? "";
+        const normalizedUsername = normalizeUsernameInput(usernameValue);
+        updates.username = normalizedUsername;
+        updates.name = normalizedUsername;
+
+        const usernameError = validateUsername(normalizedUsername);
+        if (usernameError) {
+          rejectSignup(usernameError);
+        }
+
+        const password = stringBodyValue(ctx.body, "password") ?? "";
+        const passwordError = validateAccountPassword(password, {
+          email: updates.email ?? email,
+          username: normalizedUsername,
+        });
+        if (passwordError) {
+          rejectSignup(passwordError);
+        }
+      }
+
+      if (["/reset-password", "/change-password", "/set-password"].includes(ctx.path)) {
+        const password = stringBodyValue(ctx.body, "newPassword") ?? "";
+        const passwordError = validateAccountPassword(password);
+        if (passwordError) {
+          rejectSignup(passwordError);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        return updatedBody(ctx, updates);
+      }
+    }),
+  },
   plugins: [
     username({
-      minUsernameLength: 3,
-      maxUsernameLength: 30,
-      usernameValidator: (value) => /^[a-zA-Z0-9_.]+$/.test(value),
+      minUsernameLength: accountPolicy.usernameMinLength,
+      maxUsernameLength: accountPolicy.usernameMaxLength,
+      usernameValidator: (value) => !validateUsername(value),
     }),
     ...(turnstileSecret
       ? [

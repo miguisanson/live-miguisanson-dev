@@ -249,20 +249,52 @@ button#theme-toggle {
 }
 
 .account-trigger {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border-radius: 999px;
     color: var(--primary);
-    font-size: 16px;
-    line-height: var(--header-height);
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.account-trigger-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-trigger-user {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-trigger-accent {
+    background: var(--primary);
+    color: var(--theme);
 }
 
 .account-trigger:hover,
-.account-trigger:focus-visible,
+.account-trigger:focus-visible {
+    background: var(--tertiary);
+    text-decoration: none;
+}
+
+.account-trigger-accent:hover,
+.account-trigger-accent:focus-visible {
+    background: var(--primary);
+    color: var(--theme);
+    opacity: 0.88;
+}
+
 .account-text-button:hover,
 .account-text-button:focus-visible {
     text-decoration: underline;
-}
-
-.account-modal-open-body {
-    overflow: hidden;
 }
 
 .account-modal {
@@ -273,6 +305,8 @@ button#theme-toggle {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    white-space: normal;
+    word-break: normal;
 }
 
 .account-modal-backdrop {
@@ -286,21 +320,28 @@ button#theme-toggle {
     position: relative;
     z-index: 1;
     display: grid;
-    width: min(440px, 100%);
-    max-height: min(760px, calc(100vh - 40px));
-    gap: 14px;
+    width: min(360px, calc(100vw - 32px));
+    max-height: min(680px, calc(100vh - 40px));
+    gap: 10px;
+    min-width: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    padding: 24px;
+    padding: 18px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--theme);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+    line-height: 1.45;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .account-modal-dialog h2 {
     margin: 0;
     padding-right: 32px;
-    font-size: 1.45rem;
+    font-size: 1.28rem;
+    line-height: 1.2;
 }
 
 .account-modal-close {
@@ -319,12 +360,14 @@ button#theme-toggle {
 .account-form,
 .account-profile {
     display: grid;
-    gap: 12px;
+    gap: 9px;
+    min-width: 0;
 }
 
 .account-form label {
     display: grid;
-    gap: 5px;
+    gap: 4px;
+    min-width: 0;
     color: var(--primary);
     font-size: 0.86rem;
     font-weight: 700;
@@ -333,7 +376,8 @@ button#theme-toggle {
 
 .account-form input {
     width: 100%;
-    min-height: 42px;
+    min-width: 0;
+    min-height: 36px;
     padding: 8px 10px;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -349,13 +393,18 @@ button#theme-toggle {
 }
 
 .account-primary-button {
-    min-height: 42px;
+    width: 100%;
+    min-height: 36px;
     padding: 8px 12px;
     border-radius: 6px;
     background: var(--primary);
     color: var(--theme);
     font-size: 0.9rem;
     font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .account-primary-button:disabled {
@@ -371,10 +420,13 @@ button#theme-toggle {
 
 .account-notice,
 .account-error {
+    min-width: 0;
     padding: 10px;
     border-radius: 6px;
     font-size: 0.84rem;
     line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .account-notice {
@@ -397,6 +449,46 @@ button#theme-toggle {
 
 .account-captcha {
     min-height: 65px;
+}
+
+.landing-page {
+    display: flex;
+    min-height: calc(100vh - var(--header-height) - var(--footer-height) - (var(--gap) * 2));
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.landing-copy {
+    display: grid;
+    max-width: 720px;
+    margin-block: auto;
+    gap: 8px;
+    padding-top: clamp(32px, 8vh, 80px);
+}
+
+.landing-kicker {
+    margin: 0;
+    color: var(--secondary);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 600;
+}
+
+.landing-copy h1 {
+    margin: 0;
+    font-size: clamp(3rem, 9vw, 5.8rem);
+    line-height: 1.02;
+}
+
+.landing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-bottom: clamp(8px, 4vh, 32px);
+}
+
+.landing-button {
+    min-width: 132px;
 }
 
 .main {
@@ -2329,7 +2421,11 @@ button#theme-toggle {
 
     .account-trigger {
         font-size: 1rem;
-        line-height: 1.25;
+        line-height: 1;
+    }
+
+    .account-trigger-group {
+        flex-wrap: wrap;
     }
 
     .ai-wide-shell {

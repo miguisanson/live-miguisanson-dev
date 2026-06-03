@@ -2,8 +2,22 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import {
+  accountPolicy,
+  normalizeEmailInput,
+  normalizeUsernameInput,
+  validateAccountPassword,
+  validateEmailAddress,
+  validateUsername,
+} from "@/lib/account-policy";
 
 type AccountMode = "profile" | "login" | "signup" | "verify" | "forgot" | "reset";
+type AccountUser = {
+  displayUsername?: string | null;
+  username?: string | null;
+  name?: string | null;
+  email?: string | null;
+};
 
 declare global {
   interface Window {
@@ -95,6 +109,10 @@ function safeNextPath(next: string) {
   return next.startsWith("/") && !next.startsWith("//") ? next : "";
 }
 
+function firstText(...values: Array<string | null | undefined>) {
+  return values.find((value) => value && value.trim().length > 0) ?? "";
+}
+
 export function AccountMenu() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [open, setOpen] = useState(false);
@@ -123,16 +141,6 @@ export function AccountMenu() {
     setMessage(request.message);
     setOpen(true);
   }, []);
-
-  useEffect(() => {
-    if (open) {
-      document.body.classList.add("account-modal-open-body");
-    } else {
-      document.body.classList.remove("account-modal-open-body");
-    }
-
-    return () => document.body.classList.remove("account-modal-open-body");
-  }, [open]);
 
   useEffect(() => {
     if (session?.user.emailVerified && nextPath) {
@@ -203,9 +211,18 @@ export function AccountMenu() {
     setError("");
     setMessage("");
 
-    if (password.length < 8) {
+    const normalizedEmail = normalizeEmailInput(email);
+    const normalizedUsername = normalizeUsernameInput(username);
+    const emailError = validateEmailAddress(normalizedEmail);
+    const usernameError = validateUsername(normalizedUsername);
+    const passwordError = validateAccountPassword(password, {
+      email: normalizedEmail,
+      username: normalizedUsername,
+    });
+
+    if (emailError || usernameError || passwordError) {
       setPending(false);
-      setError("Use at least 8 characters for your password.");
+      setError(emailError || usernameError || passwordError);
       return;
     }
     if (password !== confirmPassword) {
@@ -215,9 +232,9 @@ export function AccountMenu() {
     }
 
     const result = await authClient.signUp.email({
-      email: email.trim(),
-      name: username.trim(),
-      username: username.trim(),
+      email: normalizedEmail,
+      name: normalizedUsername,
+      username: normalizedUsername,
       password,
       callbackURL: `${window.location.origin}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
       fetchOptions: fetchOptions(),
@@ -239,8 +256,15 @@ export function AccountMenu() {
     event.preventDefault();
     setPending(true);
     setError("");
+    const normalizedEmail = normalizeEmailInput(email);
+    const emailError = validateEmailAddress(normalizedEmail);
+    if (emailError) {
+      setPending(false);
+      setError(emailError);
+      return;
+    }
     const result = await authClient.sendVerificationEmail({
-      email: email.trim(),
+      email: normalizedEmail,
       callbackURL: `${window.location.origin}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
     });
     setPending(false);
@@ -256,8 +280,15 @@ export function AccountMenu() {
     event.preventDefault();
     setPending(true);
     setError("");
+    const normalizedEmail = normalizeEmailInput(email);
+    const emailError = validateEmailAddress(normalizedEmail);
+    if (emailError) {
+      setPending(false);
+      setError(emailError);
+      return;
+    }
     const result = await authClient.requestPasswordReset({
-      email: email.trim(),
+      email: normalizedEmail,
       redirectTo: `${window.location.origin}/?account=reset`,
       fetchOptions: fetchOptions(),
     });
@@ -280,9 +311,10 @@ export function AccountMenu() {
       setError("This password reset link is missing its token. Request a new link.");
       return;
     }
-    if (password.length < 8 || password !== confirmPassword) {
+    const passwordError = validateAccountPassword(password);
+    if (passwordError || password !== confirmPassword) {
       setPending(false);
-      setError(password.length < 8 ? "Use at least 8 characters for your password." : "The passwords do not match.");
+      setError(passwordError || "The passwords do not match.");
       return;
     }
 
@@ -306,16 +338,25 @@ export function AccountMenu() {
     closeModal();
   }
 
-  const displayUsername =
-    session && "displayUsername" in session.user && typeof session.user.displayUsername === "string"
-      ? session.user.displayUsername
-      : session?.user.name;
+  const user = session?.user as AccountUser | undefined;
+  const displayName = firstText(user?.displayUsername, user?.username, user?.name, user?.email) || "Account";
 
   return (
     <>
-      <button className="account-trigger" type="button" onClick={() => openModal()} disabled={sessionPending}>
-        {session ? displayUsername : "Account"}
-      </button>
+      {session ? (
+        <button className="account-trigger account-trigger-user" type="button" onClick={() => openModal()} disabled={sessionPending}>
+          {displayName}
+        </button>
+      ) : (
+        <div className="account-trigger-group">
+          <button className="account-trigger" type="button" onClick={() => openModal("login")} disabled={sessionPending}>
+            Log in
+          </button>
+          <button className="account-trigger account-trigger-accent" type="button" onClick={() => openModal("signup")} disabled={sessionPending}>
+            Create account
+          </button>
+        </div>
+      )}
 
       {open ? (
         <div className="account-modal" role="presentation">
@@ -344,11 +385,8 @@ export function AccountMenu() {
 
             {mode === "profile" && session ? (
               <div className="account-profile">
-                <strong>{displayUsername}</strong>
-                <span>{session.user.email}</span>
-                <span>{session.user.emailVerified ? "Email verified" : "Email verification required"}</span>
                 <button className="account-primary-button" type="button" onClick={signOut} disabled={pending}>
-                  Log out
+                  {pending ? "Logging out..." : "Log out"}
                 </button>
               </div>
             ) : null}
@@ -380,19 +418,51 @@ export function AccountMenu() {
               <form className="account-form" onSubmit={submitSignup}>
                 <label>
                   Username
-                  <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" minLength={3} maxLength={30} pattern="[A-Za-z0-9_.]+" required />
+                  <input
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    autoComplete="username"
+                    minLength={accountPolicy.usernameMinLength}
+                    maxLength={accountPolicy.usernameMaxLength}
+                    pattern="[A-Za-z0-9][A-Za-z0-9._]*[A-Za-z0-9]"
+                    title="Use letters, numbers, dots, and underscores. Start and end with a letter or number."
+                    required
+                  />
                 </label>
                 <label>
                   Email
-                  <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    maxLength={accountPolicy.emailMaxLength}
+                    required
+                  />
                 </label>
                 <label>
                   Password
-                  <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" minLength={8} required />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    minLength={accountPolicy.passwordMinLength}
+                    maxLength={accountPolicy.passwordMaxLength}
+                    required
+                  />
                 </label>
                 <label>
                   Confirm password
-                  <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={8} required />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    minLength={accountPolicy.passwordMinLength}
+                    maxLength={accountPolicy.passwordMaxLength}
+                    required
+                  />
                 </label>
                 <TurnstileWidget onToken={setCaptchaToken} />
                 <button className="account-primary-button" type="submit" disabled={pending}>
@@ -408,7 +478,14 @@ export function AccountMenu() {
               <form className="account-form" onSubmit={resendVerification}>
                 <label>
                   Email
-                  <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    maxLength={accountPolicy.emailMaxLength}
+                    required
+                  />
                 </label>
                 <button className="account-primary-button" type="submit" disabled={pending}>
                   {pending ? "Sending..." : "Resend verification email"}
@@ -423,7 +500,14 @@ export function AccountMenu() {
               <form className="account-form" onSubmit={requestPasswordReset}>
                 <label>
                   Email
-                  <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    maxLength={accountPolicy.emailMaxLength}
+                    required
+                  />
                 </label>
                 <TurnstileWidget onToken={setCaptchaToken} />
                 <button className="account-primary-button" type="submit" disabled={pending}>
@@ -439,11 +523,27 @@ export function AccountMenu() {
               <form className="account-form" onSubmit={resetPassword}>
                 <label>
                   New password
-                  <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" minLength={8} required />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    minLength={accountPolicy.passwordMinLength}
+                    maxLength={accountPolicy.passwordMaxLength}
+                    required
+                  />
                 </label>
                 <label>
                   Confirm password
-                  <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={8} required />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    minLength={accountPolicy.passwordMinLength}
+                    maxLength={accountPolicy.passwordMaxLength}
+                    required
+                  />
                 </label>
                 <button className="account-primary-button" type="submit" disabled={pending}>
                   {pending ? "Updating..." : "Update password"}

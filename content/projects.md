@@ -36,7 +36,7 @@ hidemeta: true
       <p>
         Configured and managed a Linux-based home server for web hosting, database-backed applications, Cloudflare Tunnel testing, service monitoring, and local deployment practice.
       </p>
-      <a class="project-view-button" href="/prototypes/home-server-lab/" target="_blank" rel="noopener noreferrer">View Page</a>
+      <button class="project-view-button project-view-button-disabled" type="button" disabled>View Page</button>
     </div>
   </article>
 

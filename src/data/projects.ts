@@ -44,7 +44,18 @@ export const projects: Project[] = [
     status: "Case Study",
     tech: ["Linux", "Nginx", "MySQL", "Cloudflare Tunnel", "Monitoring"],
     image: "/homebrew_hosting.png",
-    liveUrl: "/prototypes/home-server-lab",
+    liveLabel: "View Page",
+    featured: true,
+  },
+  {
+    slug: "ai-research",
+    title: "AI Research",
+    description:
+      "Mock-first support tools for QA, recruitment, and HR workflows with structured draft outputs, safe demo data, and human review controls.",
+    status: "Prototype",
+    tech: ["Next.js", "TypeScript", "Mock data", "Workflow UI", "Human review"],
+    image: "/ai_research_preview.svg",
+    liveUrl: "/ai-research",
     featured: true,
   },
   {
