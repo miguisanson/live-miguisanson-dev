@@ -11,11 +11,11 @@
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "auth:migrate": "node scripts/auth-migrate.mjs",
-    "game:setup": "node scripts/liveboard.mjs setup",
-    "game:update": "node scripts/liveboard.mjs setup --refresh",
-    "game:build": "node scripts/liveboard.mjs setup --refresh",
-    "game:dev": "node scripts/liveboard.mjs start",
-    "game:start": "node scripts/liveboard.mjs start",
+    "game:setup": "node scripts/here-to-slay.mjs setup",
+    "game:update": "node scripts/here-to-slay.mjs setup --refresh",
+    "game:build": "node scripts/here-to-slay.mjs setup --refresh",
+    "game:dev": "node scripts/here-to-slay.mjs start",
+    "game:start": "node scripts/here-to-slay.mjs start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

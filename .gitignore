@@ -13,4 +13,4 @@ pnpm-debug.log*
 next-dev.log
 next-dev.err.log
 /REFERENCES
-/HERE-TO-SLAY/
+games/*/target/

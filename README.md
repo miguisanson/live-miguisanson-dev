@@ -27,7 +27,7 @@ npm run dev:all
 
 `npm run setup:local` creates `.env.local`, starts PostgreSQL through Docker Compose when Docker is installed, and applies the account tables. If Docker is not installed, configure `DATABASE_URL` for an existing PostgreSQL server and run `npm run auth:migrate`.
 
-The first lobby launch downloads a private Maven runtime into `.runtime/maven/`, clones the pinned upstream LiveBoard source into `.runtime/liveboard-source/`, applies `patches/liveboard-account.patch`, and caches the customized JAR in `.runtime/liveboard/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
+The first lobby launch downloads a private Maven runtime into `.runtime/maven/`, builds the local source in `games/here-to-slay/`, and caches the JAR in `.runtime/games/here-to-slay/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
 
 Create and verify an account from the portfolio header, then use the Here to Slay project card. The protected launch route issues a short-lived signed ticket and opens the lobby. The lobby verifies that ticket before accepting the WebSocket connection.
 
@@ -47,7 +47,7 @@ npm run start
 
 ## Private Here to Slay Lobby
 
-The LiveBoard multiplayer lobby is a separate Java service. Java 21 or later is required. A system Maven installation is optional because the launcher downloads a private copy when needed.
+The Here to Slay multiplayer lobby is a separate Java service. Java 21 or later is required. A system Maven installation is optional because the launcher downloads a private copy when needed.
 
 Start only the private lobby:
 
@@ -83,13 +83,13 @@ During local development, verification and reset links print in the Next.js term
 To use a different lobby port:
 
 ```bash
-LIVEBOARD_PORT=5050 npm run game:start
+HERE_TO_SLAY_PORT=5050 npm run game:start
 ```
 
 In PowerShell:
 
 ```powershell
-$env:LIVEBOARD_PORT = "5050"
+$env:HERE_TO_SLAY_PORT = "5050"
 npm run game:start
 ```
 
@@ -103,7 +103,7 @@ BETTER_AUTH_SECRET=GENERATE_A_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
 BETTER_AUTH_URL=https://example.com
 GAME_TICKET_SECRET=GENERATE_A_DIFFERENT_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
 NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.example.com/
-LIVEBOARD_AUTH_REQUIRED=true
+HERE_TO_SLAY_AUTH_REQUIRED=true
 RESEND_API_KEY=re_...
 AUTH_EMAIL_FROM=miguisanson.dev <accounts@example.com>
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
@@ -126,11 +126,11 @@ Install Git, Node.js 22 or later, npm, and Java 21 or later on the Ubuntu server
 npm install
 npm run setup:local
 npm run game:setup
-sudo cp deploy/liveboard.service.example /etc/systemd/system/liveboard.service
-sudoedit /etc/systemd/system/liveboard.service
+sudo cp deploy/here-to-slay.service.example /etc/systemd/system/here-to-slay.service
+sudoedit /etc/systemd/system/here-to-slay.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now liveboard
-sudo systemctl status liveboard
+sudo systemctl enable --now here-to-slay
+sudo systemctl status here-to-slay
 ```
 
 Edit `YOUR_UBUNTU_USER`, `WorkingDirectory`, and `.env.local` before starting it. The service restarts the Java lobby automatically after failures or server reboots. Run the Next.js portfolio behind your normal reverse proxy and keep the same `.env.local` available to it.
@@ -146,6 +146,8 @@ src/
 content/
   blog/                 # Markdown blog posts
   projects/             # Markdown project case studies
+games/
+  here-to-slay/          # Integrated Spring Boot game lobby source
 public/
   certificates/         # Resume/certificate assets
   prototypes/           # Static demo builds for project showcases

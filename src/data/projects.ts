@@ -58,7 +58,7 @@ export const projects: Project[] = [
     liveUrl: "https://www.carousell.ph/u/sanmig02/",
   },
   {
-    slug: "here-to-slay-liveboard",
+    slug: "here-to-slay-online-tabletop",
     title: hereToSlayGame.title,
     description:
       "Play Here to Slay online with friends using a browser-based multiplayer virtual tabletop.",
@@ -67,7 +67,6 @@ export const projects: Project[] = [
     image: "/here_to_slay_preview.webp",
     liveUrl: hereToSlayGame.playUrl,
     liveLabel: "Play Game",
-    githubUrl: hereToSlayGame.githubUrl,
     featured: true,
   },
 ];

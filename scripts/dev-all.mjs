@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextScript = path.join(repoRoot, "node_modules", "next", "dist", "bin", "next");
-const liveboardScript = path.join(repoRoot, "scripts", "liveboard.mjs");
+const hereToSlayScript = path.join(repoRoot, "scripts", "here-to-slay.mjs");
 const children = new Set();
 let stopping = false;
 
@@ -89,9 +89,9 @@ process.once("SIGINT", () => stopAll("SIGINT"));
 process.once("SIGTERM", () => stopAll("SIGTERM"));
 process.once("exit", () => stopAll("SIGTERM"));
 
-console.log("[dev:all] Starting the portfolio and private LiveBoard lobby...");
+console.log("[dev:all] Starting the portfolio and private Here to Slay lobby...");
 const portfolioPort = getPort("PORT", "3000");
-const lobbyPort = getPort("LIVEBOARD_PORT", "5000");
+const lobbyPort = getPort("HERE_TO_SLAY_PORT", "5000");
 
 if (await isPortListening(portfolioPort)) {
   console.log(`[dev:all] Port ${portfolioPort} is already in use. Leaving the existing portfolio server running.`);
@@ -102,7 +102,7 @@ if (await isPortListening(portfolioPort)) {
 if (await isPortListening(lobbyPort)) {
   console.log(`[dev:all] Port ${lobbyPort} is already in use. Leaving the existing lobby server running.`);
 } else {
-  start(process.execPath, [liveboardScript, "start"]);
+  start(process.execPath, [hereToSlayScript, "start"]);
 }
 
 if (children.size === 0) {
