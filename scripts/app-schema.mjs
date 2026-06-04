@@ -91,6 +91,76 @@ export async function ensureAppSchema(repoRoot) {
       `,
     );
 
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "userAccess" (
+          "userId" text not null primary key references "user" ("id") on delete cascade,
+          "approved" integer not null default 0,
+          "banned" integer not null default 0,
+          "note" text,
+          "updatedAt" text not null,
+          "updatedBy" text
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "userAccess" (
+          "userId" text not null primary key references "user" ("id") on delete cascade,
+          "approved" integer not null default 0,
+          "banned" integer not null default 0,
+          "note" text,
+          "updatedAt" timestamptz not null,
+          "updatedBy" text
+        );
+      `,
+    );
+
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "siteSetting" (
+          "key" text not null primary key,
+          "value" text not null,
+          "updatedAt" text not null,
+          "updatedBy" text
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "siteSetting" (
+          "key" text not null primary key,
+          "value" text not null,
+          "updatedAt" timestamptz not null,
+          "updatedBy" text
+        );
+      `,
+    );
+
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "userProfile" (
+          "userId" text not null primary key references "user" ("id") on delete cascade,
+          "bio" text not null default '',
+          "avatarUrl" text,
+          "bannerUrl" text,
+          "links" text not null default '{}',
+          "createdAt" text not null,
+          "updatedAt" text not null
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "userProfile" (
+          "userId" text not null primary key references "user" ("id") on delete cascade,
+          "bio" text not null default '',
+          "avatarUrl" text,
+          "bannerUrl" text,
+          "links" text not null default '{}',
+          "createdAt" timestamptz not null,
+          "updatedAt" timestamptz not null
+        );
+      `,
+    );
+
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_createdAt" ON "auditLog" ("createdAt");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_eventType" ON "auditLog" ("eventType");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_actorUserId" ON "auditLog" ("actorUserId");`);

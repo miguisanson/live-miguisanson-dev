@@ -1,11 +1,8 @@
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { captcha, username } from "better-auth/plugins";
-import { mkdirSync } from "node:fs";
-import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
-import { Pool } from "pg";
+import { captcha, customSession, username } from "better-auth/plugins";
+import { getPostgresPool, getSqliteDatabase } from "./app-db";
 import {
   accountPolicy,
   normalizeEmailInput,
@@ -14,7 +11,7 @@ import {
   validateEmailAddress,
   validateUsername,
 } from "./account-policy";
-import { recordAuditEvent } from "./admin-data";
+import { isAdminUser, recordAuditEvent } from "./admin-data";
 import { hasTransactionalEmailProvider, sendTransactionalEmail } from "./email";
 
 const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
@@ -62,16 +59,9 @@ function getTrustedOrigins() {
 }
 
 function getDatabase() {
-  if (process.env.DATABASE_URL) {
-    return new Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
-  }
-
-  const sqliteFilename = path.basename(process.env.AUTH_SQLITE_PATH ?? "auth.sqlite");
-  const sqlitePath = path.join(process.cwd(), ".runtime", sqliteFilename);
-  mkdirSync(path.dirname(sqlitePath), { recursive: true });
-  return new DatabaseSync(sqlitePath);
+  // Share a single pool/handle with the rest of the app (see app-db.ts) instead of
+  // opening a second connection just for better-auth.
+  return process.env.DATABASE_URL ? getPostgresPool() : getSqliteDatabase();
 }
 
 function rejectSignup(message: string): never {
@@ -219,6 +209,29 @@ export const auth = betterAuth({
       });
     },
   },
+  user: {
+    deleteUser: {
+      enabled: true,
+      sendDeleteAccountVerification: async ({ user, url }) => {
+        await sendTransactionalEmail({
+          to: user.email,
+          subject: "Confirm deleting your miguisanson.dev account",
+          text: `Open this link to permanently delete your account. This cannot be undone: ${url}`,
+          html: emailHtml("Open this link to permanently delete your account. This cannot be undone:", url),
+          developmentUrl: url,
+        });
+      },
+      afterDelete: async (user) => {
+        await recordAuditEvent({
+          eventType: "account.delete",
+          actor: { id: user.id, email: user.email },
+          targetUserId: user.id,
+          targetEmail: user.email,
+          metadata: { success: true },
+        });
+      },
+    },
+  },
   rateLimit: {
     enabled: true,
     storage: "database",
@@ -228,13 +241,14 @@ export const auth = betterAuth({
       "/sign-in/username": { window: 10, max: 3 },
       "/send-verification-email": { window: 60, max: 3 },
       "/request-password-reset": { window: 60, max: 3 },
+      "/delete-user": { window: 60, max: 3 },
     },
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (
         process.env.NODE_ENV === "production" &&
-        ["/sign-up/email", "/send-verification-email", "/request-password-reset"].includes(ctx.path) &&
+        ["/sign-up/email", "/send-verification-email", "/request-password-reset", "/delete-user"].includes(ctx.path) &&
         !hasTransactionalEmailProvider()
       ) {
         throw new APIError("INTERNAL_SERVER_ERROR", {
@@ -311,6 +325,9 @@ export const auth = betterAuth({
       minUsernameLength: accountPolicy.usernameMinLength,
       maxUsernameLength: accountPolicy.usernameMaxLength,
       usernameValidator: (value) => !validateUsername(value),
+    }),
+    customSession(async ({ user, session }) => {
+      return { user: { ...user, isAdmin: await isAdminUser(user.id) }, session };
     }),
     ...(turnstileSecret
       ? [

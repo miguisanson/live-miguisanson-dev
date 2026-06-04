@@ -40,11 +40,18 @@ export function LandingGreeting() {
       <div className="landing-copy">
         <p className="landing-kicker">{greeting}</p>
         <h1 id="landing-title">Hi {name}!</h1>
+        <p className="landing-summary">Portfolio, games, notes, and account spaces for miguisanson.dev.</p>
       </div>
 
       <nav className="landing-actions" aria-label="Primary pages">
         <Link className="button landing-button" href="/resume">
           <span className="button-inner">My Resume</span>
+        </Link>
+        <Link className="button landing-button" href="/games">
+          <span className="button-inner">Games</span>
+        </Link>
+        <Link className="button landing-button" href="/blog">
+          <span className="button-inner">Community</span>
         </Link>
       </nav>
     </section>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { recordAuditEvent } from "@/lib/admin-data";
+import { getGameLaunchAccess, recordAuditEvent } from "@/lib/admin-data";
 import { createGameTicket } from "@/lib/game-tickets";
 
 export const runtime = "nodejs";
@@ -28,6 +28,16 @@ function accountRedirect(account: string, message?: string) {
   url.search = "";
   url.searchParams.set("account", account);
   url.searchParams.set("next", "/api/game/launch");
+  if (message) {
+    url.searchParams.set("message", message);
+  }
+  return NextResponse.redirect(url);
+}
+
+function accountPageRedirect(message?: string) {
+  const url = getSiteUrl();
+  url.pathname = "/account";
+  url.search = "";
   if (message) {
     url.searchParams.set("message", message);
   }
@@ -77,6 +87,19 @@ export async function GET(request: NextRequest) {
     displayUsername?: string | null;
     username?: string | null;
   };
+  const access = await getGameLaunchAccess(user);
+  if (!access.allowed) {
+    await recordAuditEvent({
+      eventType: "game.launch",
+      actor: user,
+      targetUserId: user.id,
+      targetEmail: user.email,
+      metadata: { success: false, reason: access.reason },
+      request,
+    });
+    return accountPageRedirect(access.message ?? "This account cannot launch the game right now.");
+  }
+
   const username = user.displayUsername ?? user.username ?? user.name;
   const ticket = await createGameTicket({ id: user.id, username });
   const gameUrl = getGameUrl();

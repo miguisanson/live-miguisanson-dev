@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 import {
   accountPolicy,
   normalizeEmailInput,
@@ -109,6 +110,7 @@ function getInitialRequest() {
   return {
     mode: (
       requestedMode === "signup" ||
+      requestedMode === "profile" ||
       requestedMode === "verify" ||
       requestedMode === "forgot" ||
       requestedMode === "reset"
@@ -133,6 +135,8 @@ function firstText(...values: Array<string | null | undefined>) {
 export function AccountMenu() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  useFocusTrap(open, dialogRef);
   const [mode, setMode] = useState<AccountMode>("login");
   const [email, setEmail] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -393,7 +397,7 @@ export function AccountMenu() {
       {open ? (
         <div className="account-modal" role="presentation">
           <button className="account-modal-backdrop" type="button" onClick={closeModal} aria-label="Close account dialog" />
-          <section className="account-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+          <section ref={dialogRef} className="account-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
             <button className="account-modal-close" type="button" onClick={closeModal} aria-label="Close account dialog">
               &times;
             </button>
