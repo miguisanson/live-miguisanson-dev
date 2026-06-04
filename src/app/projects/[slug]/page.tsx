@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { PageShell } from "@/components/layout/PageShell";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { TagList } from "@/components/ui/TagList";
@@ -37,7 +38,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <TagList tags={project.tech} />
       </div>
       <div className="buttons" style={{ justifyContent: "flex-start", marginBottom: 20 }}>
-        {project.liveUrl ? (
+        {project.liveUrl === "/api/game/launch" ? (
+          <GameLaunchButton className="button primary-button">{project.liveLabel ?? "Play Game"}</GameLaunchButton>
+        ) : project.liveUrl ? (
           <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")}>
             {project.liveLabel ?? "View Page"}
           </ButtonLink>

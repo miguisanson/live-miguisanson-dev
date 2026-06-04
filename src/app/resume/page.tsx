@@ -1,4 +1,5 @@
 import { CertificateModal } from "@/components/sections/CertificateModal";
+import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { SocialIcons } from "@/components/sections/SocialIcons";
 import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
@@ -157,7 +158,9 @@ export default function ResumePage() {
                 <div className="project-card-body">
                   <h3>{project.title}</h3>
                   <p>{project.description}</p>
-                  {project.liveUrl ? (
+                  {project.liveUrl === "/api/game/launch" ? (
+                    <GameLaunchButton className="project-view-button">{project.liveLabel ?? "Play Game"}</GameLaunchButton>
+                  ) : project.liveUrl ? (
                     <a className="project-view-button" href={project.liveUrl} target="_blank" rel="noopener noreferrer">
                       {project.liveLabel ?? "View Page"}
                     </a>

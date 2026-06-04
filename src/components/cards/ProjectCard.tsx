@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Project } from "@/data/projects";
+import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { TagList } from "@/components/ui/TagList";
 
@@ -21,7 +22,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <ButtonLink href={`/projects/${project.slug}`} variant="secondary">
             Case study
           </ButtonLink>
-          {project.liveUrl ? (
+          {project.liveUrl === "/api/game/launch" ? (
+            <GameLaunchButton>{project.liveLabel ?? "Play Game"}</GameLaunchButton>
+          ) : project.liveUrl ? (
             <ButtonLink href={project.liveUrl} external={project.liveUrl.startsWith("http")} variant="secondary">
               {project.liveLabel ?? "View Page"}
             </ButtonLink>

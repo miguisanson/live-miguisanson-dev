@@ -18,6 +18,11 @@ type AccountUser = {
   name?: string | null;
   email?: string | null;
 };
+type AccountModalRequest = {
+  mode?: AccountMode;
+  next?: string;
+  message?: string;
+};
 
 declare global {
   interface Window {
@@ -153,6 +158,21 @@ export function AccountMenu() {
     setMessage(request.message);
     setOpen(true);
   }, []);
+
+  useEffect(() => {
+    function openRequestedModal(event: Event) {
+      const detail = (event as CustomEvent<AccountModalRequest>).detail ?? {};
+      setMode(detail.mode ?? (session ? "profile" : "login"));
+      setNextPath(safeNextPath(detail.next ?? ""));
+      setMessage(detail.message ?? "");
+      setError("");
+      setCaptchaToken("");
+      setOpen(true);
+    }
+
+    window.addEventListener("miguisanson:open-account", openRequestedModal);
+    return () => window.removeEventListener("miguisanson:open-account", openRequestedModal);
+  }, [session]);
 
   useEffect(() => {
     if (session?.user.emailVerified && nextPath) {
