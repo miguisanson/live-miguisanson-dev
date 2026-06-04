@@ -265,7 +265,7 @@ GAME_TICKET_SECRET=${secret()}
 NEXT_PUBLIC_HERE_TO_SLAY_URL=http://localhost:5000/
 HERE_TO_SLAY_AUTH_REQUIRED=true
 RESEND_API_KEY=
-AUTH_EMAIL_FROM=miguisanson.dev <accounts@example.com>
+AUTH_EMAIL_FROM=miguisanson.dev <accounts@miguisanson.dev>
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
 `;

@@ -60,10 +60,10 @@ Build production output:
 npm run build
 ```
 
-Run the production server after a successful build:
+Run both production services after a successful build:
 
 ```bash
-npm run start
+npm run start:all
 ```
 
 ## Private Here to Slay Lobby
@@ -85,6 +85,7 @@ npm run game:update  Alias for rebuilding the customized lobby JAR
 npm run game:dev     Build if needed, then start the lobby on port 5000
 npm run game:start   Production alias for starting the lobby
 npm run dev:all      Start the Next.js dev server and private lobby together
+npm run start:all    Start the production Next.js app and private lobby together
 ```
 
 ## Accounts
@@ -99,7 +100,7 @@ The portfolio uses Better Auth with a local SQLite database for development and 
 - Optional Cloudflare Turnstile protection
 - Verified-account tickets for Here to Slay player identities
 
-During local development, verification and reset links print in the Next.js terminal only when no email provider is configured. You can send real email with either `RESEND_API_KEY` plus `AUTH_EMAIL_FROM`, or generic SMTP with `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `AUTH_EMAIL_FROM`. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
+During local development, verification and reset links print in the Next.js terminal only when no email provider is configured. For production, use Resend with `RESEND_API_KEY` and `AUTH_EMAIL_FROM=miguisanson.dev <accounts@miguisanson.dev>`. Generic SMTP is still supported with `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `AUTH_EMAIL_FROM`. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
 
 You can test the whole account flow on Windows at `http://localhost:3000`. Real internet users cannot use your Windows `localhost`; for public signups, deploy the Next.js app on the Ubuntu server or another public host, set `BETTER_AUTH_URL` to the public HTTPS site, and configure Resend or SMTP. In production, signup, resend verification, and password reset are blocked if no email provider is configured.
 
@@ -110,7 +111,29 @@ Account creation rules are intentionally simple:
 - Password must be 12-128 characters, cannot start or end with a space, cannot be a common weak password, and cannot contain the username or email name.
 - Email verification stays enabled. Unverified accounts cannot log in or launch Here to Slay.
 
-For a quick Windows test with Gmail SMTP, use an App Password:
+### Resend with Cloudflare DNS
+
+Use this for public account verification so the site does not depend on a personal mailbox.
+
+1. Create a Resend account and add `miguisanson.dev` in the Resend Domains dashboard.
+2. Resend will show DNS records for domain verification, usually SPF, DKIM, and return-path/bounce records.
+3. In Cloudflare, open `miguisanson.dev`, go to **DNS > Records**, and add each record exactly as Resend shows it.
+4. Wait for DNS to propagate, then click verify/check in Resend.
+5. Create a Resend API key with sending access and put it in `.env.local` or the Ubuntu service environment:
+
+```env
+RESEND_API_KEY=re_your_resend_key_here
+AUTH_EMAIL_FROM=miguisanson.dev <accounts@miguisanson.dev>
+SMTP_HOST=
+SMTP_PORT=
+SMTP_SECURE=
+SMTP_USER=
+SMTP_PASS=
+```
+
+`accounts@miguisanson.dev` does not need to be a real mailbox just to send verification email through Resend after the domain is verified. If you want to receive replies or support messages at that address, create mailbox forwarding separately in Cloudflare Email Routing or another mailbox provider.
+
+For a fallback local test with Gmail SMTP, use an App Password:
 
 ```env
 AUTH_EMAIL_FROM=Miguel Sanson <miguelsanson21@gmail.com>
@@ -140,17 +163,17 @@ npm run game:start
 
 ### Public Access
 
-`localhost:5000` works only on the computer running Java. To let website visitors or friends join, expose the lobby through a stable Cloudflare Tunnel, reverse proxy, or another hosting provider. Before building the portfolio, create `.env.local`:
+`localhost:5000` works only on the computer running Java. To let website visitors or friends join, expose the lobby through a stable Cloudflare Tunnel, reverse proxy, or another hosting provider. Before setup, create `.env.local` on the Ubuntu server:
 
 ```env
 DATABASE_URL=postgresql://USER:PASSWORD@DATABASE_HOST:5432/DATABASE_NAME
 BETTER_AUTH_SECRET=GENERATE_A_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
-BETTER_AUTH_URL=https://example.com
+BETTER_AUTH_URL=https://miguisanson.dev
 GAME_TICKET_SECRET=GENERATE_A_DIFFERENT_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
-NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.example.com/
+NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.miguisanson.dev/
 HERE_TO_SLAY_AUTH_REQUIRED=true
 RESEND_API_KEY=re_...
-AUTH_EMAIL_FROM=miguisanson.dev <accounts@example.com>
+AUTH_EMAIL_FROM=miguisanson.dev <accounts@miguisanson.dev>
 SMTP_HOST=
 SMTP_PORT=
 SMTP_SECURE=
@@ -160,21 +183,25 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
 TURNSTILE_SECRET_KEY=...
 ```
 
-Then apply migrations and rebuild both applications:
+Then set up the whole server with one command:
 
 ```bash
-npm run auth:migrate
-npm run build
-npm run game:build
+bash scripts/setup-ubuntu-server.sh
 ```
+
+Run both services with one command:
+
+```bash
+npm run start:all
+```
+
+`start:all` starts Next.js on `PORT` or `3000` and the Java lobby on `HERE_TO_SLAY_PORT` or `5000`. Put a reverse proxy, Cloudflare Tunnel, or equivalent in front of those ports so `miguisanson.dev` points to the Next.js app and `game.miguisanson.dev` points to the lobby.
 
 ### Ubuntu Service
 
-After cloning the repository on an Ubuntu server, run the bootstrap script to install Node.js 22, Java 21, npm packages, and the local auth database setup where permissions allow:
+For a persistent boot service, use the setup command above first. Then install the example Java lobby service only if you want systemd to manage the lobby separately:
 
 ```bash
-bash scripts/bootstrap-ubuntu.sh
-npm run game:setup
 sudo cp deploy/here-to-slay.service.example /etc/systemd/system/here-to-slay.service
 sudoedit /etc/systemd/system/here-to-slay.service
 sudo systemctl daemon-reload

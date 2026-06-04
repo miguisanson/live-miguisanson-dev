@@ -246,29 +246,28 @@ const frontPage = (function() {
 
     //User customization (name, color)
     const customizeContainer = document.getElementById("playerCustomizeContainer");
-    const userNameInput = document.getElementById("playerName");
+    const userNameElement = document.getElementById("playerName");
     const userColorInput = document.getElementById("playerColor");
     const randomizer = document.getElementById("randomUser");
     const player = gameState.clientUser;
 
     //initialize default values
     function namePlaceholder() {
-        userNameInput.placeholder = player.name;
-        userNameInput.value = player.name;
+        userNameElement.textContent = player.name;
+        userNameElement.title = player.name;
         userColorInput.value = player.color; //#ff0022 hexadec format
     }
     namePlaceholder();
 
-    randomizer.addEventListener("click", ()=> {
-        gameState.rerollUser();
-        namePlaceholder(); //tested- triggers onchange and pushes to server
-    });
+    if(randomizer) {
+        randomizer.addEventListener("click", ()=> {
+            gameState.rerollUser();
+            namePlaceholder(); //tested- triggers onchange and pushes to server
+        });
+    }
 
     //Details: use a gameState function to manipulate user info;
     //and in that gameState function, it'll update server for us
-    userNameInput.onchange = function(event) {
-        gameState.changeUserName(userNameInput.value);
-    }
     userColorInput.onchange = function(event) {
         gameState.changeUserColor(userColorInput.value);
     }

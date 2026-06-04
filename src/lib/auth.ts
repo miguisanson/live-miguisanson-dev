@@ -71,7 +71,7 @@ export const auth = betterAuth({
     maxPasswordLength: accountPolicy.passwordMaxLength,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
-      void sendTransactionalEmail({
+      await sendTransactionalEmail({
         to: user.email,
         subject: "Reset your miguisanson.dev password",
         text: `Open this link to reset your password: ${url}`,
@@ -83,7 +83,7 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url }) => {
-      void sendTransactionalEmail({
+      await sendTransactionalEmail({
         to: user.email,
         subject: "Verify your miguisanson.dev account",
         text: `Open this link to verify your email address: ${url}`,
@@ -111,7 +111,8 @@ export const auth = betterAuth({
         !hasTransactionalEmailProvider()
       ) {
         throw new APIError("INTERNAL_SERVER_ERROR", {
-          message: "Email delivery is not configured. Set RESEND_API_KEY or SMTP settings before enabling public accounts.",
+          message:
+            "Email delivery is not configured. Set AUTH_EMAIL_FROM and RESEND_API_KEY or SMTP settings before enabling public accounts.",
         });
       }
 

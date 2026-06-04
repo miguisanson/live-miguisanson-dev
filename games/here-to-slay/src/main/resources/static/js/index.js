@@ -87,6 +87,7 @@ window.addEventListener("load", (event) => {
 
     //Establishes uniqueID to storage if not already
     const user = gameState.initializeUser();
+    pregameInterface.frontPage.namePlaceholder();
     //Connection 'requires' uniqueID to gauge new or old connection
     server.connect("");
 

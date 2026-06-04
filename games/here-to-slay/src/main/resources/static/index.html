@@ -293,30 +293,89 @@
         #frontPage {
             z-index: 6;
             position: absolute;
-            height: 100vh;
+            inset: 0;
+            min-height: 100vh;
             width: 100vw;
-
-<!--            opacity: 0.9;-->
-            opacity: 1.0;
-/*            background-color: rgba(255, 255, 255, 0.9);*/
-            background-color: #1F1F1F;
+            box-sizing: border-box;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background-color: #17181c;
+            background-image:
+                linear-gradient(rgba(23, 24, 28, 0.92), rgba(23, 24, 28, 0.96)),
+                url("images/backgrounds/confetti-doodles.svg");
+            background-position: center;
+            background-size: auto, 460px;
             color: #FFFFFF;
             text-align: center;
-
             overflow-y: auto;
         }
 
+        #lobbyPanel {
+            position: relative;
+            width: min(92vw, 560px);
+            box-sizing: border-box;
+            display: grid;
+            gap: 14px;
+            padding: clamp(18px, 3vw, 26px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(31, 31, 31, 0.94);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+        }
+
+        #lobbyPanel h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 4vw, 2.35rem);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+
+        .lobbySubtitle {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        #connectionStatus {
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(119, 191, 255, 0.28);
+            border-radius: 8px;
+            background: rgba(38, 93, 137, 0.24);
+            color: #e8f5ff;
+        }
+
         .textHere {
+            margin: 0;
             overflow-y: auto; /* is default anyways? TBD */
             overflow-wrap: break-word;
+            max-height: 3.5em;
+        }
+
+        #miscLoad,
+        #assetLoad,
+        #gameLoad {
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.94rem;
+        }
+
+        #miscLoad:empty,
+        #assetLoad:empty,
+        #gameLoad:empty {
+            display: none;
         }
 
         #miscLoad {
-            background-color: rgba(52, 218, 93, 0.5);
+            background-color: rgba(56, 168, 102, 0.28);
         }
 
         #assetLoad {
-            background-color: rgba(255, 0, 250, 0.5);
+            background-color: rgba(203, 80, 189, 0.24);
+        }
+
+        #gameLoad {
+            background-color: rgba(230, 191, 85, 0.2);
         }
 
         .chatContainer {
@@ -386,7 +445,12 @@
 /*        }*/
 
         #playerCustomizeContainer {
-/*            background-color: rgba(255, 255, 255, 0.9);*/
+            display: grid;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
         }
 
         #ESCAPEtag {
@@ -395,11 +459,73 @@
 
         .transparentBg {
             background-color: rgba(178, 190, 181, 0.1);
-<!--            background-color: transparent;-->
         }
 
         #playerName {
-            text-align: center;
+            min-width: 0;
+            color: #ffffff;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        #playerColor {
+            width: 44px;
+            height: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 6px;
+            background: transparent;
+            vertical-align: middle;
+        }
+
+        .playerNameRow,
+        .playerColorRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .lobbyActions,
+        #aboutButtons,
+        #advancedLobbyOptions div {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            min-height: 38px;
+            padding: 8px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.17);
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #serverJoin {
+            min-width: 160px;
+            border-color: rgba(230, 191, 85, 0.7);
+            background: #e6bf55;
+            color: #17130a;
+            font-weight: bold;
+        }
+
+        #serverJoin:hover:not(:disabled) {
+            background: #f0cf73;
         }
 
         #instructions {
@@ -442,14 +568,52 @@
 /*            align-content: center;*/
 /*        }*/
         a {
-            color: #fff;
+            color: #d8ecff;
         }
 
         #aboutButtons {
-            position: absolute;
-            width: 100%;
-            bottom: 0;
-            margin-bottom: 6px;
+            margin-top: 2px;
+        }
+
+        #advancedLobbyOptions {
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.16);
+            text-align: left;
+        }
+
+        #advancedLobbyOptions summary {
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        #advancedLobbyOptions p {
+            margin: 8px 0 10px;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        #advancedLobbyOptions input {
+            max-width: 230px;
+        }
+
+        #advancedLobbyOptions div + div {
+            margin-top: 10px;
+        }
+
+        #advancedLobbyOptions label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-height: 720px) {
+            #frontPage {
+                place-items: start center;
+            }
         }
     </style>
     <script type="module" src="js/index.js"></script>
@@ -461,59 +625,60 @@
                 <img alt="imageTooltip" id="inspectImage" src="">
         </div>
         <div id="frontPage">
-            <h1>&#127993;
+            <main id="lobbyPanel" aria-labelledby="lobbyTitle">
+            <h1 id="lobbyTitle">&#127993; Virtual Table Top: Here To Slay! &#9876;</h1>
+            <h1 hidden aria-hidden="true">&#127993;
                 Virtual Table Top: Here To Slay!
 <!--                &#9876;-->
                 ⚔️
             </h1>
 
-            <label>Server address: <input type="text" id="address" disabled=""></label>
-            <button type="button" id="connectButton">&#9997;</button>
-            <button type="button" id="defaultConnectButton">&#10226;</button>
+            <p class="lobbySubtitle">This private lobby connects automatically using your verified miguisanson.dev account.</p>
             <p id="connectionStatus">Please wait while we set up.</p>
 
             <!-- player personalization -->
             <div id="playerCustomizeContainer">
-<!--                <i id="ESCAPEtag">[ESCAPE] to find me later.</i>-->
-                <div>
-                    <label>Welcome, <input type="text" id="playerName">.
-                    </label>
-                </div>
-                <div>
-                    <label>You're feeling quite... <input type="color" id="playerColor"> today. Looks good.
-                    </label>
-                </div>
-                <div>
-                    <label><button type="button" id="randomUser"><I>Reroll</I>&#10226;</button></label>
-                </div>
+                <p class="playerNameRow">
+                    <span>Welcome,</span>
+                    <strong id="playerName">Player</strong>
+                    <span>.</span>
+                </p>
+                <p class="playerColorRow">
+                    <span>Table color</span>
+                    <input type="color" id="playerColor" aria-label="Player color">
+                </p>
             </div>
-
-            <br>
 
             <!-- serverJoin to change text or availability based on server connection -->
-            <div>
+            <div class="lobbyActions">
                 <button type="button" id="serverJoin" disabled>Start Game</button>
-                <button type="button" id="loadDemo" disabled>Load Demo</button>
-                <button type="button" id="loadSolo" disabled>Load Solo</button>
+                <button type="button" id="openHelp">How to Play</button>
             </div>
 
-            <br>
-            <div>
-                <button id="openHelp">How to Play</button>
-            </div>
+            <details id="advancedLobbyOptions">
+                <summary>Advanced connection and offline options</summary>
+                <p>Use these only for troubleshooting or playing without the private multiplayer lobby.</p>
+                <div>
+                    <label>Server address: <input type="text" id="address" disabled=""></label>
+                    <button type="button" id="connectButton">&#9997;</button>
+                    <button type="button" id="defaultConnectButton">&#10226;</button>
+                </div>
+                <div>
+                    <button type="button" id="loadDemo" disabled>Load Demo</button>
+                    <button type="button" id="loadSolo" disabled>Load Solo</button>
+                </div>
+            </details>
 
             <!-- misc assets - card assets - board setup -->
-            <p class="textHere" id="miscLoad">
-            </p>
-            <p class="textHere" id="assetLoad">
-            </p>
-            <p class="textHere" id="gameLoad">
-            </p>
+            <p class="textHere" id="miscLoad"></p>
+            <p class="textHere" id="assetLoad"></p>
+            <p class="textHere" id="gameLoad"></p>
             <div id="aboutButtons">
-                <button id="openRules">Rules</button>
-                <button id="openCredits">Credits</button>
-                <button id="openAbout">About</button>
+                <button type="button" id="openRules">Rules</button>
+                <button type="button" id="openCredits">Credits</button>
+                <button type="button" id="openAbout">About</button>
             </div>
+            </main>
 
             <dialog id="instructionsDialog">
                 <h3>Controls: Navigating the table</h3>

@@ -9,6 +9,7 @@
     "start": "next start",
     "bootstrap:windows": "powershell -ExecutionPolicy Bypass -File scripts/bootstrap-windows.ps1",
     "bootstrap:ubuntu": "bash scripts/bootstrap-ubuntu.sh",
+    "setup:server": "bash scripts/setup-ubuntu-server.sh",
     "setup:local": "node scripts/setup-local.mjs",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
@@ -18,6 +19,7 @@
     "game:build": "node scripts/here-to-slay.mjs setup --refresh",
     "game:dev": "node scripts/here-to-slay.mjs start",
     "game:start": "node scripts/here-to-slay.mjs start",
+    "start:all": "node scripts/start-all.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

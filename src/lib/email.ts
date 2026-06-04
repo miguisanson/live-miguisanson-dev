@@ -9,6 +9,10 @@ type TransactionalEmail = {
   developmentUrl?: string;
 };
 
+function failDelivery(message: string): never {
+  throw new Error(message);
+}
+
 function getResend() {
   return process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : undefined;
 }
@@ -18,7 +22,7 @@ function hasCompleteSmtpConfig() {
 }
 
 export function hasTransactionalEmailProvider() {
-  return Boolean(process.env.RESEND_API_KEY || hasCompleteSmtpConfig());
+  return Boolean(process.env.AUTH_EMAIL_FROM?.trim() && (process.env.RESEND_API_KEY || hasCompleteSmtpConfig()));
 }
 
 function getFromAddress() {
@@ -65,6 +69,9 @@ function getSmtpTransport() {
 export async function sendTransactionalEmail(message: TransactionalEmail) {
   const from = getFromAddress();
   if (!from) {
+    if (process.env.NODE_ENV === "production") {
+      failDelivery("AUTH_EMAIL_FROM is required for production transactional email.");
+    }
     return;
   }
 
@@ -79,7 +86,11 @@ export async function sendTransactionalEmail(message: TransactionalEmail) {
     });
 
     if (error) {
-      console.error(`[auth email] Resend rejected "${message.subject}" for ${message.to}: ${error.message}`);
+      const failure = `Resend rejected "${message.subject}" for ${message.to}: ${error.message}`;
+      console.error(`[auth email] ${failure}`);
+      if (process.env.NODE_ENV === "production") {
+        failDelivery(failure);
+      }
     }
     return;
   }
@@ -95,9 +106,11 @@ export async function sendTransactionalEmail(message: TransactionalEmail) {
         html: message.html,
       });
     } catch (error) {
-      console.error(
-        `[auth email] SMTP send failed for ${message.to}: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      const failure = `SMTP send failed for ${message.to}: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`[auth email] ${failure}`);
+      if (process.env.NODE_ENV === "production") {
+        failDelivery(failure);
+      }
     }
     return;
   }
@@ -108,6 +121,8 @@ export async function sendTransactionalEmail(message: TransactionalEmail) {
       console.log(`[auth email] Open this local link: ${message.developmentUrl}`);
     }
   } else {
-    console.error("[auth email] No email provider configured. Set RESEND_API_KEY or SMTP_* variables.");
+    const failure = "No email provider configured. Set RESEND_API_KEY or SMTP_* variables.";
+    console.error(`[auth email] ${failure}`);
+    failDelivery(failure);
   }
 }
