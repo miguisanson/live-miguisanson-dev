@@ -169,6 +169,7 @@ npm run game:start
 DATABASE_URL=postgresql://USER:PASSWORD@DATABASE_HOST:5432/DATABASE_NAME
 BETTER_AUTH_SECRET=GENERATE_A_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
 BETTER_AUTH_URL=https://miguisanson.dev
+BETTER_AUTH_TRUSTED_ORIGINS=https://miguisanson.dev,https://www.miguisanson.dev,https://game.miguisanson.dev
 GAME_TICKET_SECRET=GENERATE_A_DIFFERENT_RANDOM_SECRET_WITH_AT_LEAST_32_CHARACTERS
 NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.miguisanson.dev/
 HERE_TO_SLAY_AUTH_REQUIRED=true
@@ -195,7 +196,7 @@ Run both services with one command:
 npm run start:all
 ```
 
-`start:all` starts Next.js on `PORT` or `3000` and the Java lobby on `HERE_TO_SLAY_PORT` or `5000`. Put a reverse proxy, Cloudflare Tunnel, or equivalent in front of those ports so `miguisanson.dev` points to the Next.js app and `game.miguisanson.dev` points to the lobby.
+`start:all` starts Next.js on `PORT` or `3000` and the Java lobby on `HERE_TO_SLAY_PORT` or `5000`. Put a reverse proxy, Cloudflare Tunnel, or equivalent in front of those ports so `miguisanson.dev` points to the Next.js app and `game.miguisanson.dev` points to the lobby. If users can also reach the site through another hostname, add that full origin to `BETTER_AUTH_TRUSTED_ORIGINS`.
 
 ### Ubuntu Service
 

@@ -17,9 +17,31 @@ import {
 import { hasTransactionalEmailProvider, sendTransactionalEmail } from "./email";
 
 const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+const defaultTrustedOrigins = [
+  "https://miguisanson.dev",
+  "https://www.miguisanson.dev",
+  "https://game.miguisanson.dev",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 function emailHtml(message: string, url: string) {
   return `<p>${message}</p><p><a href="${url}">${url}</a></p>`;
+}
+
+function getTrustedOrigins() {
+  return Array.from(
+    new Set(
+      [
+        ...defaultTrustedOrigins,
+        process.env.BETTER_AUTH_URL,
+        ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ].filter((origin): origin is string => Boolean(origin)),
+    ),
+  );
 }
 
 function getDatabase() {
@@ -61,6 +83,7 @@ function updatedBody(ctx: { body?: unknown }, updates: Record<string, string>) {
 export const auth = betterAuth({
   appName: "miguisanson.dev",
   baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: getTrustedOrigins(),
   secret: process.env.BETTER_AUTH_SECRET,
   database: getDatabase(),
   disabledPaths: ["/is-username-available"],
