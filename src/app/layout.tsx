@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import { AppShell } from "@/components/layout/AppShell";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import "./globals.css";
-
-const sans = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" dir="auto" data-theme="auto" className={sans.variable} suppressHydrationWarning>
+    <html lang="en" dir="auto" data-theme="auto" suppressHydrationWarning>
       <body className="list" id="top">
         <script
           dangerouslySetInnerHTML={{
@@ -42,10 +36,9 @@ export default function RootLayout({
             `,
           }}
         />
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <AppShell>{children}</AppShell>
+        <Header />
+        <main className="main">{children}</main>
+        <Footer />
       </body>
     </html>
   );

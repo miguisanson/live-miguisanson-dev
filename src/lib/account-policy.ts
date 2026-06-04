@@ -4,9 +4,6 @@ export const accountPolicy = {
   passwordMinLength: 12,
   passwordMaxLength: 128,
   emailMaxLength: 254,
-  displayNameMinLength: 1,
-  displayNameMaxLength: 50,
-  bioMaxLength: 280,
 };
 
 const commonWeakPasswords = new Set([
@@ -30,10 +27,6 @@ export function normalizeEmailInput(value: string) {
 
 export function normalizeUsernameInput(value: string) {
   return value.trim();
-}
-
-export function normalizeDisplayName(value: string) {
-  return value.replace(/\s+/g, " ").trim();
 }
 
 export function validateEmailAddress(value: string) {
@@ -76,24 +69,6 @@ export function validateUsername(value: string) {
     return "Username cannot contain repeated dots or underscores.";
   }
 
-  return "";
-}
-
-export function validateDisplayName(value: string) {
-  const displayName = normalizeDisplayName(value);
-  if (displayName.length < accountPolicy.displayNameMinLength) {
-    return "Display name cannot be empty.";
-  }
-  if (displayName.length > accountPolicy.displayNameMaxLength) {
-    return `Display name must be ${accountPolicy.displayNameMaxLength} characters or fewer.`;
-  }
-  return "";
-}
-
-export function validateBio(value: string) {
-  if (value.length > accountPolicy.bioMaxLength) {
-    return `Bio must be ${accountPolicy.bioMaxLength} characters or fewer.`;
-  }
   return "";
 }
 

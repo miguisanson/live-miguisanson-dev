@@ -126,13 +126,7 @@ By default this creates or promotes `accounts@miguisanson.dev`, marks it verifie
 ADMIN_RESET_PASSWORD=1 npm run admin:bootstrap
 ```
 
-The dashboard is available at `/admin`. Unauthenticated users are sent to login; signed-in non-admin users receive a 404. Audit logging records signup, login, verification resend, password reset request, admin bootstrap, admin user changes, game access setting changes, and game launch events.
-
-Admins can search users, manually verify email, approve or unapprove game access, ban or unban non-admin users, and clear a user's sessions. The **Game Access** controls enforce launch rules server-side:
-
-- `Game open` controls whether normal users can launch the lobby.
-- `Approved users only` requires an admin-approved account before launch.
-- `Maintenance mode` blocks normal launches while still letting admins test.
+The dashboard is available at `/admin`. Unauthenticated users are sent to login; signed-in non-admin users receive a 404. Audit logging records signup, login, verification resend, password reset request, admin bootstrap, and game launch events.
 
 ### Resend with Cloudflare DNS
 

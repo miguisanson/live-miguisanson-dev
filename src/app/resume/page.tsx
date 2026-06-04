@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { CertificateModal } from "@/components/sections/CertificateModal";
 import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { SocialIcons } from "@/components/sections/SocialIcons";
@@ -53,7 +52,7 @@ export default function ResumePage() {
       <article className="first-entry home-info">
         <div className="profile">
           <div className="profile_inner">
-            <Image src="/miguel.jpg" alt={profile.name} width={200} height={200} priority draggable={false} />
+            <img draggable="false" src="/miguel.jpg" alt="profile image" title="" height="200" width="200" />
             <h1>{profile.name}</h1>
             <span>
               {"\uD83D\uDCCD"} Mandaluyong City, Philippines | Bachelor of Science in Information Technology
@@ -84,7 +83,7 @@ export default function ResumePage() {
             <div className="skills-wrapper">
               {skills.map((skill) => (
                 <span className="skill-tag" key={skill.name}>
-                  <img src={skill.icon} className="skill-icon" alt={skill.name} width={24} height={24} />
+                  <img src={skill.icon} className="skill-icon" alt={skill.name} />
                   {skill.name}
                 </span>
               ))}
@@ -155,9 +154,7 @@ export default function ResumePage() {
           <div className="project-grid">
             {projects.map((project) => (
               <article className="project-card" key={project.slug}>
-                {project.image ? (
-                  <Image src={project.image} alt={`${project.title} preview`} width={640} height={360} />
-                ) : null}
+                {project.image ? <img src={project.image} alt={`${project.title} preview`} /> : null}
                 <div className="project-card-body">
                   <h3>{project.title}</h3>
                   <p>{project.description}</p>

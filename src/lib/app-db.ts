@@ -17,7 +17,7 @@ export function getDatabaseDialect() {
   return process.env.DATABASE_URL ? "postgres" : "sqlite";
 }
 
-export function getSqliteDatabase() {
+function getSqliteDatabase() {
   if (sqliteDatabase) {
     return sqliteDatabase;
   }
@@ -29,7 +29,7 @@ export function getSqliteDatabase() {
   return sqliteDatabase;
 }
 
-export function getPostgresPool() {
+function getPostgresPool() {
   if (postgresPool) {
     return postgresPool;
   }

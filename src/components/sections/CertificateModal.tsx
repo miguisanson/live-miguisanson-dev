@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useFocusTrap } from "@/lib/useFocusTrap";
 
 type CertificateState = {
   title: string;
@@ -11,8 +10,6 @@ type CertificateState = {
 export function CertificateModal() {
   const [certificate, setCertificate] = useState<CertificateState | null>(null);
   const lastFocused = useRef<HTMLElement | null>(null);
-  const dialogRef = useRef<HTMLElement | null>(null);
-  useFocusTrap(Boolean(certificate), dialogRef);
 
   useEffect(() => {
     function onClick(event: MouseEvent) {
@@ -63,7 +60,7 @@ export function CertificateModal() {
   return (
     <div className="pdf-modal" id="certificate-modal" aria-hidden={certificate ? "false" : "true"}>
       <div className="pdf-modal-backdrop" onClick={closeModal} />
-      <section ref={dialogRef} className="pdf-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="certificate-modal-title">
+      <section className="pdf-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="certificate-modal-title">
         <header className="pdf-modal-header">
           <h3 id="certificate-modal-title">{certificate?.title ?? "Certificate"}</h3>
           <div className="pdf-modal-actions">
