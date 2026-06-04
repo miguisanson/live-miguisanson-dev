@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 import { loadLocalEnv } from "./env.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const nextScript = path.join(repoRoot, "node_modules", "next", "dist", "bin", "next");
 const hereToSlayScript = path.join(repoRoot, "scripts", "here-to-slay.mjs");
+const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const children = new Set();
 let stopping = false;
 
@@ -101,7 +101,7 @@ const lobbyPort = getPort("HERE_TO_SLAY_PORT", "5000");
 if (await isPortListening(portfolioPort)) {
   console.log(`[start:all] Port ${portfolioPort} is already in use. Leaving the existing portfolio server running.`);
 } else {
-  start("portfolio", process.execPath, [nextScript, "start", "-p", String(portfolioPort)], {
+  start("portfolio", npm, ["run", "start", "--", "-p", String(portfolioPort)], {
     NODE_ENV: "production",
   });
 }
