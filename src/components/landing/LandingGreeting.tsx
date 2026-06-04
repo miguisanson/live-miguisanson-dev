@@ -37,11 +37,8 @@ export function LandingGreeting() {
   return (
     <section className="landing-page" aria-labelledby="landing-title">
       <div className="landing-copy">
-        <p className="landing-kicker">
-          {greeting}, {name}
-        </p>
-        <h1 id="landing-title">miguisanson.dev</h1>
-        <p className="landing-summary">A compact home for resume work, games, community notes, and account profiles.</p>
+        <p className="landing-kicker">{greeting}</p>
+        <h1 id="landing-title">Hi! {name}</h1>
       </div>
     </section>
   );

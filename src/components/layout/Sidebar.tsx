@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ThemeToggle } from "./ThemeToggle";
 import {
   AdminIcon,
   CloseIcon,
@@ -16,6 +15,13 @@ type NavItem = {
   icon: ReactNode;
   match: "exact" | "prefix";
 };
+
+const resumeLinks = [
+  { href: "/resume#about", label: "About" },
+  { href: "/resume#experience", label: "Experience" },
+  { href: "/resume#projects", label: "Projects" },
+  { href: "/resume#certifications", label: "Certifications" },
+];
 
 type SidebarProps = {
   isAdmin: boolean;
@@ -36,6 +42,7 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
 
   const isActive = (item: NavItem) =>
     item.match === "exact" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const showResumeLinks = pathname === "/resume" || pathname.startsWith("/resume/");
 
   return (
     <aside className="sidebar">
@@ -63,15 +70,22 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
                   {item.icon}
                   <span>{item.label}</span>
                 </Link>
+                {item.href === "/resume" && showResumeLinks ? (
+                  <ul className="sidebar-subnav" aria-label="Resume sections">
+                    {resumeLinks.map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} onClick={onClose}>
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
             );
           })}
         </ul>
       </nav>
-
-      <div className="sidebar-footer">
-        <ThemeToggle />
-      </div>
     </aside>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountControls } from "@/components/auth/AccountControls";
 import { MenuIcon } from "./NavIcons";
+import { ThemeToggle } from "./ThemeToggle";
 
 type TopBarProps = {
   onMenuClick: () => void;
@@ -19,6 +20,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       </div>
       <div className="topbar-right">
         <AccountControls />
+        <ThemeToggle />
       </div>
     </header>
   );
