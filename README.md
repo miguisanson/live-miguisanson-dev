@@ -99,6 +99,7 @@ The portfolio uses Better Auth with a local SQLite database for development and 
 - Database-backed auth rate limits
 - Optional Cloudflare Turnstile protection
 - Verified-account tickets for Here to Slay player identities
+- Admin-only `/admin` dashboard with account stats and audit logs
 
 During local development, verification and reset links print in the Next.js terminal only when no email provider is configured. For production, use Resend with `RESEND_API_KEY` and `AUTH_EMAIL_FROM=miguisanson.dev <accounts@miguisanson.dev>`. Generic SMTP is still supported with `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `AUTH_EMAIL_FROM`. Set both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to enable Turnstile.
 
@@ -110,6 +111,22 @@ Account creation rules are intentionally simple:
 - Username must be 3-30 characters and can use letters, numbers, dots, and underscores.
 - Password must be 12-128 characters, cannot start or end with a space, cannot be a common weak password, and cannot contain the username or email name.
 - Email verification stays enabled. Unverified accounts cannot log in or launch Here to Slay.
+
+### Admin Dashboard
+
+Run this after `npm run auth:migrate` or `bash scripts/setup-ubuntu-server.sh` to create the first admin account:
+
+```bash
+npm run admin:bootstrap
+```
+
+By default this creates or promotes `accounts@miguisanson.dev`, marks it verified, grants admin access, and prints a generated username/password once. Store the password immediately. To reset the password for that existing admin account later:
+
+```bash
+ADMIN_RESET_PASSWORD=1 npm run admin:bootstrap
+```
+
+The dashboard is available at `/admin`. Unauthenticated users are sent to login; signed-in non-admin users receive a 404. Audit logging records signup, login, verification resend, password reset request, admin bootstrap, and game launch events.
 
 ### Resend with Cloudflare DNS
 

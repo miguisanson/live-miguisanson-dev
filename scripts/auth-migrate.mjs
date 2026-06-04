@@ -10,6 +10,7 @@ import { nextCookies } from "better-auth/next-js";
 import { captcha, username } from "better-auth/plugins";
 import { getMigrations } from "better-auth/db/migration";
 import { loadLocalEnv } from "./env.mjs";
+import { ensureAppSchema } from "./app-schema.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 loadLocalEnv(repoRoot);
@@ -125,6 +126,7 @@ try {
   const migrations = await getMigrations(auth.options);
   await migrations.runMigrations();
   normalizeSqliteSchema();
+  await ensureAppSchema(repoRoot);
   console.log("[auth] Migrations applied.");
 } catch (error) {
   console.error(`[auth] Unable to run Better Auth migrations: ${error instanceof Error ? error.message : String(error)}`);

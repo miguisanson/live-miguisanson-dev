@@ -1120,6 +1120,173 @@ button#theme-toggle {
     transform: none;
 }
 
+.admin-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.admin-stat,
+.admin-event-card,
+.admin-section,
+.admin-audit-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--entry);
+}
+
+.admin-stat,
+.admin-event-card {
+    display: grid;
+    gap: 4px;
+    min-height: 88px;
+    align-content: center;
+    padding: 14px;
+}
+
+.admin-stat span,
+.admin-event-card span,
+.admin-section-heading span,
+.admin-audit-item footer,
+.admin-audit-item time {
+    color: var(--secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.admin-stat strong,
+.admin-event-card strong {
+    color: var(--primary);
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.admin-section {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 16px;
+}
+
+.admin-section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.admin-section-heading h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.15rem;
+    line-height: 1.2;
+}
+
+.admin-event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.admin-event-card {
+    min-height: 74px;
+    background: var(--code-bg);
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-table {
+    min-width: 620px;
+    font-size: 0.86rem;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-table th {
+    color: var(--secondary);
+    font-size: 0.74rem;
+    font-weight: 900;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.admin-table td {
+    color: var(--content);
+    line-height: 1.35;
+}
+
+.admin-table td strong {
+    display: inline-flex;
+    margin-right: 6px;
+    color: var(--primary);
+    line-height: 1.25;
+}
+
+.admin-badge {
+    display: inline-flex;
+    min-height: 22px;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--theme);
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.admin-audit-list {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-audit-item {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+    background: var(--code-bg);
+}
+
+.admin-audit-item > div,
+.admin-audit-item footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.admin-audit-item strong {
+    color: var(--primary);
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.admin-audit-item p,
+.admin-empty {
+    margin: 0;
+    color: var(--content);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.admin-empty {
+    padding: 12px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--code-bg);
+}
+
 .pdf-modal {
     position: fixed;
     inset: 0;

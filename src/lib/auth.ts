@@ -14,6 +14,7 @@ import {
   validateEmailAddress,
   validateUsername,
 } from "./account-policy";
+import { recordAuditEvent } from "./admin-data";
 import { hasTransactionalEmailProvider, sendTransactionalEmail } from "./email";
 
 const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
@@ -94,6 +95,93 @@ function updatedBody(ctx: { body?: unknown }, updates: Record<string, string>) {
       },
     },
   };
+}
+
+type AuditUser = {
+  id?: string;
+  email?: string | null;
+  username?: string | null;
+  displayUsername?: string | null;
+  name?: string | null;
+};
+
+function returnedUser(value: unknown) {
+  if (!value || typeof value !== "object" || !("user" in value)) {
+    return undefined;
+  }
+  const user = (value as { user?: unknown }).user;
+  return user && typeof user === "object" ? (user as AuditUser) : undefined;
+}
+
+function returnedError(value: unknown) {
+  if (value instanceof APIError) {
+    return value.body?.message ?? value.message;
+  }
+  if (!value || typeof value !== "object") {
+    return "";
+  }
+  const body = "body" in value ? (value as { body?: unknown }).body : undefined;
+  if (body && typeof body === "object" && "message" in body) {
+    const message = (body as { message?: unknown }).message;
+    return typeof message === "string" ? message : "";
+  }
+  return "";
+}
+
+function requestFromContext(ctx: unknown) {
+  return ctx && typeof ctx === "object" && "request" in ctx ? ((ctx as { request?: Request }).request) : undefined;
+}
+
+async function auditAuthRequest(ctx: { path: string; body?: unknown; context: { returned?: unknown } }) {
+  const email = stringBodyValue(ctx.body, "email");
+  const usernameValue = stringBodyValue(ctx.body, "username") ?? stringBodyValue(ctx.body, "name");
+  const returned = ctx.context.returned;
+  const error = returnedError(returned);
+  const success = !error;
+  const user = returnedUser(returned);
+  const request = requestFromContext(ctx);
+
+  if (ctx.path === "/sign-up/email") {
+    await recordAuditEvent({
+      eventType: "auth.sign_up",
+      actor: user ?? { email, username: usernameValue },
+      targetUserId: user?.id ?? null,
+      targetEmail: user?.email ?? email ?? null,
+      metadata: { success, path: ctx.path, error: error || undefined },
+      request,
+    });
+  }
+
+  if (ctx.path === "/sign-in/email" || ctx.path === "/sign-in/username") {
+    await recordAuditEvent({
+      eventType: "auth.sign_in",
+      actor: user ?? { email, username: usernameValue },
+      targetUserId: user?.id ?? null,
+      targetEmail: user?.email ?? email ?? null,
+      metadata: { success, path: ctx.path, error: error || undefined },
+      request,
+    });
+  }
+
+  if (ctx.path === "/send-verification-email") {
+    await recordAuditEvent({
+      eventType: "auth.verification_requested",
+      actor: user ?? { email },
+      targetEmail: user?.email ?? email ?? null,
+      metadata: { success, path: ctx.path, error: error || undefined },
+      request,
+    });
+  }
+
+  if (ctx.path === "/request-password-reset") {
+    await recordAuditEvent({
+      eventType: "auth.password_reset_requested",
+      actor: user ?? { email },
+      targetEmail: user?.email ?? email ?? null,
+      metadata: { success, path: ctx.path, error: error || undefined },
+      request,
+    });
+  }
 }
 
 export const auth = betterAuth({
@@ -202,6 +290,19 @@ export const auth = betterAuth({
 
       if (Object.keys(updates).length > 0) {
         return updatedBody(ctx, updates);
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      if (
+        [
+          "/sign-up/email",
+          "/sign-in/email",
+          "/sign-in/username",
+          "/send-verification-email",
+          "/request-password-reset",
+        ].includes(ctx.path)
+      ) {
+        await auditAuthRequest(ctx);
       }
     }),
   },

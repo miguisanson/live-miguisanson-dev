@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { recordAuditEvent } from "@/lib/admin-data";
 import { createGameTicket } from "@/lib/game-tickets";
 
 export const runtime = "nodejs";
@@ -52,10 +53,23 @@ export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
 
   if (!session) {
+    await recordAuditEvent({
+      eventType: "game.launch",
+      metadata: { success: false, reason: "not_authenticated" },
+      request,
+    });
     return accountRedirect("login", "Log in or create an account to join the tabletop.");
   }
 
   if (!session.user.emailVerified) {
+    await recordAuditEvent({
+      eventType: "game.launch",
+      actor: session.user,
+      targetUserId: session.user.id,
+      targetEmail: session.user.email,
+      metadata: { success: false, reason: "email_not_verified" },
+      request,
+    });
     return accountRedirect("verify", "Verify your email address before joining the tabletop.");
   }
 
@@ -67,6 +81,14 @@ export async function GET(request: NextRequest) {
   const ticket = await createGameTicket({ id: user.id, username });
   const gameUrl = getGameUrl();
   gameUrl.hash = `ticket=${encodeURIComponent(ticket)}`;
+  await recordAuditEvent({
+    eventType: "game.launch",
+    actor: user,
+    targetUserId: user.id,
+    targetEmail: user.email,
+    metadata: { success: true, destination: gameUrl.origin },
+    request,
+  });
 
   return NextResponse.redirect(gameUrl);
 }
