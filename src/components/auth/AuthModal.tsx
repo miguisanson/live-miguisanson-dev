@@ -1,0 +1,556 @@
+"use client";
+
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { useFocusTrap } from "@/lib/useFocusTrap";
+import {
+  accountPolicy,
+  normalizeEmailInput,
+  normalizeUsernameInput,
+  validateAccountPassword,
+  validateEmailAddress,
+  validateUsername,
+} from "@/lib/account-policy";
+
+type AccountMode = "login" | "signup" | "verify" | "forgot" | "reset";
+type AccountModalRequest = {
+  mode?: AccountMode;
+  next?: string;
+  message?: string;
+};
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "expired-callback": () => void;
+          theme: "auto";
+        },
+      ) => string;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
+
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+const productionSiteUrl = "https://miguisanson.dev";
+
+function getPublicOrigin() {
+  if (siteUrl) {
+    return siteUrl.replace(/\/$/, "");
+  }
+  if (process.env.NODE_ENV === "production") {
+    return productionSiteUrl;
+  }
+  return window.location.origin;
+}
+
+function TurnstileWidget({ onToken }: { onToken: (token: string) => void }) {
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!turnstileSiteKey || !container.current) {
+      return;
+    }
+
+    let widgetId: string | undefined;
+    const render = () => {
+      if (!container.current || !window.turnstile || widgetId) {
+        return;
+      }
+      widgetId = window.turnstile.render(container.current, {
+        sitekey: turnstileSiteKey,
+        callback: onToken,
+        "expired-callback": () => onToken(""),
+        theme: "auto",
+      });
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]');
+    if (existingScript) {
+      if (window.turnstile) {
+        render();
+      } else {
+        existingScript.addEventListener("load", render, { once: true });
+      }
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.dataset.turnstile = "true";
+      script.addEventListener("load", render, { once: true });
+      document.head.append(script);
+    }
+
+    return () => {
+      if (widgetId && window.turnstile) {
+        window.turnstile.remove(widgetId);
+      }
+    };
+  }, [onToken]);
+
+  return turnstileSiteKey ? <div className="account-captcha" ref={container} /> : null;
+}
+
+function getInitialRequest() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedMode = params.get("account");
+  return {
+    mode: (
+      requestedMode === "signup" ||
+      requestedMode === "verify" ||
+      requestedMode === "forgot" ||
+      requestedMode === "reset"
+        ? requestedMode
+        : "login"
+    ) as AccountMode,
+    next: params.get("next") ?? "",
+    message: params.get("message") ?? "",
+    token: params.get("token") ?? "",
+    shouldOpen: params.has("account") || params.has("token"),
+  };
+}
+
+function safeNextPath(next: string) {
+  return next.startsWith("/") && !next.startsWith("//") ? next : "";
+}
+
+export function AuthModal() {
+  const { data: session } = authClient.useSession();
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<AccountMode>("login");
+  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [nextPath, setNextPath] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  useFocusTrap(open, dialogRef);
+
+  useEffect(() => {
+    const request = getInitialRequest();
+    if (!request.shouldOpen) {
+      return;
+    }
+
+    setMode(request.token ? "reset" : request.mode);
+    setResetToken(request.token);
+    setNextPath(safeNextPath(request.next));
+    setMessage(request.message);
+    setOpen(true);
+  }, []);
+
+  useEffect(() => {
+    function openRequestedModal(event: Event) {
+      const detail = (event as CustomEvent<AccountModalRequest>).detail ?? {};
+      setMode(detail.mode ?? "login");
+      setNextPath(safeNextPath(detail.next ?? ""));
+      setMessage(detail.message ?? "");
+      setError("");
+      setCaptchaToken("");
+      setOpen(true);
+    }
+
+    window.addEventListener("miguisanson:open-account", openRequestedModal);
+    return () => window.removeEventListener("miguisanson:open-account", openRequestedModal);
+  }, []);
+
+  useEffect(() => {
+    if (session?.user.emailVerified && nextPath) {
+      window.location.assign(nextPath);
+    }
+  }, [nextPath, session?.user.emailVerified]);
+
+  function switchMode(nextMode: AccountMode) {
+    setMode(nextMode);
+    setError("");
+    setMessage("");
+    setCaptchaToken("");
+  }
+
+  function closeModal() {
+    setOpen(false);
+    setError("");
+    setMessage("");
+    const url = new URL(window.location.href);
+    for (const key of ["account", "message", "next", "token", "error"]) {
+      url.searchParams.delete(key);
+    }
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  function fetchOptions() {
+    return captchaToken
+      ? {
+          headers: {
+            "x-captcha-response": captchaToken,
+          },
+        }
+      : undefined;
+  }
+
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    setMessage("");
+
+    const value = identifier.trim();
+    const result = value.includes("@")
+      ? await authClient.signIn.email({ email: value, password, fetchOptions: fetchOptions() })
+      : await authClient.signIn.username({ username: value, password, fetchOptions: fetchOptions() });
+
+    setPending(false);
+    if (result.error) {
+      setError(
+        result.error.status === 403
+          ? "Verify your email address before logging in. Use the verification link from signup or resend it with your email address."
+          : result.error.message ?? "Login failed.",
+      );
+      return;
+    }
+
+    if (nextPath) {
+      window.location.assign(nextPath);
+      return;
+    }
+    closeModal();
+  }
+
+  async function submitSignup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    setMessage("");
+
+    const normalizedEmail = normalizeEmailInput(email);
+    const normalizedUsername = normalizeUsernameInput(username);
+    const emailError = validateEmailAddress(normalizedEmail);
+    const usernameError = validateUsername(normalizedUsername);
+    const passwordError = validateAccountPassword(password, {
+      email: normalizedEmail,
+      username: normalizedUsername,
+    });
+
+    if (emailError || usernameError || passwordError) {
+      setPending(false);
+      setError(emailError || usernameError || passwordError);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPending(false);
+      setError("The passwords do not match.");
+      return;
+    }
+
+    const result = await authClient.signUp.email({
+      email: normalizedEmail,
+      name: normalizedUsername,
+      username: normalizedUsername,
+      password,
+      callbackURL: `${getPublicOrigin()}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
+      fetchOptions: fetchOptions(),
+    });
+
+    setPending(false);
+    if (result.error) {
+      setError(result.error.message ?? "Account creation failed.");
+      return;
+    }
+
+    setMode("verify");
+    setMessage("Check your inbox for a verification link. The same response is shown when an email is already registered.");
+    setPassword("");
+    setConfirmPassword("");
+  }
+
+  async function resendVerification(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    const normalizedEmail = normalizeEmailInput(email);
+    const emailError = validateEmailAddress(normalizedEmail);
+    if (emailError) {
+      setPending(false);
+      setError(emailError);
+      return;
+    }
+    const result = await authClient.sendVerificationEmail({
+      email: normalizedEmail,
+      callbackURL: `${getPublicOrigin()}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
+    });
+    setPending(false);
+
+    if (result.error) {
+      setError(result.error.message ?? "Unable to send a verification email.");
+      return;
+    }
+    setMessage("If the account exists, a fresh verification link has been sent.");
+  }
+
+  async function requestPasswordReset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    const normalizedEmail = normalizeEmailInput(email);
+    const emailError = validateEmailAddress(normalizedEmail);
+    if (emailError) {
+      setPending(false);
+      setError(emailError);
+      return;
+    }
+    const result = await authClient.requestPasswordReset({
+      email: normalizedEmail,
+      redirectTo: `${getPublicOrigin()}/?account=reset`,
+      fetchOptions: fetchOptions(),
+    });
+    setPending(false);
+
+    if (result.error) {
+      setError(result.error.message ?? "Unable to request a password reset.");
+      return;
+    }
+    setMessage("If the account exists, a password reset link has been sent.");
+  }
+
+  async function resetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+
+    if (!resetToken) {
+      setPending(false);
+      setError("This password reset link is missing its token. Request a new link.");
+      return;
+    }
+    const passwordError = validateAccountPassword(password);
+    if (passwordError || password !== confirmPassword) {
+      setPending(false);
+      setError(passwordError || "The passwords do not match.");
+      return;
+    }
+
+    const result = await authClient.resetPassword({ newPassword: password, token: resetToken });
+    setPending(false);
+    if (result.error) {
+      setError(result.error.message ?? "Unable to reset your password.");
+      return;
+    }
+
+    setMode("login");
+    setPassword("");
+    setConfirmPassword("");
+    setMessage("Password updated. Log in with your new password.");
+  }
+
+  if (!open) {
+    return null;
+  }
+
+  const title =
+    mode === "signup"
+      ? "Create account"
+      : mode === "verify"
+        ? "Verify your email"
+        : mode === "forgot"
+          ? "Reset password"
+          : mode === "reset"
+            ? "Choose a new password"
+            : "Log in";
+
+  return (
+    <div className="account-modal" role="presentation">
+      <button className="account-modal-backdrop" type="button" onClick={closeModal} aria-label="Close account dialog" />
+      <section ref={dialogRef} className="account-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+        <button className="account-modal-close" type="button" onClick={closeModal} aria-label="Close account dialog">
+          &times;
+        </button>
+
+        <h2 id="account-modal-title">{title}</h2>
+
+        {message ? (
+          <p className="account-notice" aria-live="polite">
+            {message}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="account-error" aria-live="assertive">
+            {error}
+          </p>
+        ) : null}
+
+        {mode === "login" ? (
+          <form className="account-form" onSubmit={submitLogin}>
+            <label>
+              Username or email
+              <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} autoComplete="username" required />
+            </label>
+            <label>
+              Password
+              <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required />
+            </label>
+            <TurnstileWidget onToken={setCaptchaToken} />
+            <button className="account-primary-button" type="submit" disabled={pending}>
+              {pending ? "Logging in..." : "Log in"}
+            </button>
+            <button className="account-text-button" type="button" onClick={() => switchMode("forgot")}>
+              Forgot password?
+            </button>
+            <button className="account-text-button" type="button" onClick={() => switchMode("signup")}>
+              Create an account
+            </button>
+          </form>
+        ) : null}
+
+        {mode === "signup" ? (
+          <form className="account-form" onSubmit={submitSignup}>
+            <label>
+              Username
+              <input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                autoComplete="username"
+                minLength={accountPolicy.usernameMinLength}
+                maxLength={accountPolicy.usernameMaxLength}
+                pattern="[A-Za-z0-9][A-Za-z0-9._]*[A-Za-z0-9]"
+                title="Use letters, numbers, dots, and underscores. Start and end with a letter or number."
+                required
+              />
+            </label>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                maxLength={accountPolicy.emailMaxLength}
+                required
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={accountPolicy.passwordMinLength}
+                maxLength={accountPolicy.passwordMaxLength}
+                required
+              />
+            </label>
+            <label>
+              Confirm password
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={accountPolicy.passwordMinLength}
+                maxLength={accountPolicy.passwordMaxLength}
+                required
+              />
+            </label>
+            <TurnstileWidget onToken={setCaptchaToken} />
+            <button className="account-primary-button" type="submit" disabled={pending}>
+              {pending ? "Creating account..." : "Create account"}
+            </button>
+            <button className="account-text-button" type="button" onClick={() => switchMode("login")}>
+              Already have an account? Log in
+            </button>
+          </form>
+        ) : null}
+
+        {mode === "verify" ? (
+          <form className="account-form" onSubmit={resendVerification}>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                maxLength={accountPolicy.emailMaxLength}
+                required
+              />
+            </label>
+            <button className="account-primary-button" type="submit" disabled={pending}>
+              {pending ? "Sending..." : "Resend verification email"}
+            </button>
+            <button className="account-text-button" type="button" onClick={() => switchMode("login")}>
+              Back to login
+            </button>
+          </form>
+        ) : null}
+
+        {mode === "forgot" ? (
+          <form className="account-form" onSubmit={requestPasswordReset}>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                maxLength={accountPolicy.emailMaxLength}
+                required
+              />
+            </label>
+            <TurnstileWidget onToken={setCaptchaToken} />
+            <button className="account-primary-button" type="submit" disabled={pending}>
+              {pending ? "Sending..." : "Send reset link"}
+            </button>
+            <button className="account-text-button" type="button" onClick={() => switchMode("login")}>
+              Back to login
+            </button>
+          </form>
+        ) : null}
+
+        {mode === "reset" ? (
+          <form className="account-form" onSubmit={resetPassword}>
+            <label>
+              New password
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={accountPolicy.passwordMinLength}
+                maxLength={accountPolicy.passwordMaxLength}
+                required
+              />
+            </label>
+            <label>
+              Confirm password
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={accountPolicy.passwordMinLength}
+                maxLength={accountPolicy.passwordMaxLength}
+                required
+              />
+            </label>
+            <button className="account-primary-button" type="submit" disabled={pending}>
+              {pending ? "Updating..." : "Update password"}
+            </button>
+          </form>
+        ) : null}
+      </section>
+    </div>
+  );
+}

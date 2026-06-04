@@ -29,6 +29,7 @@ export async function prototypeHtmlResponse(slug: string) {
   return new Response(htmlWithBase, {
     headers: {
       "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=0, must-revalidate",
     },
   });
 }
@@ -52,13 +53,20 @@ export async function prototypeFileOrHtmlResponse(slug: string, request: Request
       if (extension === ".html") {
         const html = await fs.readFile(resolvedPath, "utf8");
         return new Response(addBaseTag(html, slug), {
-          headers: { "content-type": contentTypes[extension] },
+          headers: {
+            "content-type": contentTypes[extension],
+            "cache-control": "public, max-age=0, must-revalidate",
+          },
         });
       }
 
       const file = await fs.readFile(resolvedPath);
       return new Response(file, {
-        headers: { "content-type": contentTypes[extension] ?? "application/octet-stream" },
+        headers: {
+          "content-type": contentTypes[extension] ?? "application/octet-stream",
+          // Built prototype assets use content-hashed filenames, so they are safe to cache immutably.
+          "cache-control": "public, max-age=31536000, immutable",
+        },
       });
     }
   } catch {
