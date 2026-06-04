@@ -41,6 +41,19 @@ function isPortListening(port) {
   });
 }
 
+function runPreflight(command, args) {
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    env: process.env,
+    stdio: "inherit",
+    windowsHide: true,
+  });
+
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
 function start(label, command, args, extraEnv = {}) {
   const child = spawn(command, args, {
     cwd: repoRoot,
@@ -95,6 +108,9 @@ process.once("SIGTERM", () => stopAll("SIGTERM"));
 process.once("exit", () => stopAll("SIGTERM"));
 
 console.log("[start:all] Starting the production portfolio and private Here to Slay lobby...");
+console.log("[start:all] Applying auth migrations...");
+runPreflight(npm, ["run", "auth:migrate"]);
+
 const portfolioPort = getPort("PORT", "3000");
 const lobbyPort = getPort("HERE_TO_SLAY_PORT", "5000");
 
