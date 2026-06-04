@@ -37,6 +37,18 @@ declare global {
 }
 
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+const productionSiteUrl = "https://miguisanson.dev";
+
+function getPublicOrigin() {
+  if (siteUrl) {
+    return siteUrl.replace(/\/$/, "");
+  }
+  if (process.env.NODE_ENV === "production") {
+    return productionSiteUrl;
+  }
+  return window.location.origin;
+}
 
 function TurnstileWidget({ onToken }: { onToken: (token: string) => void }) {
   const container = useRef<HTMLDivElement>(null);
@@ -236,7 +248,7 @@ export function AccountMenu() {
       name: normalizedUsername,
       username: normalizedUsername,
       password,
-      callbackURL: `${window.location.origin}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
+      callbackURL: `${getPublicOrigin()}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
       fetchOptions: fetchOptions(),
     });
 
@@ -265,7 +277,7 @@ export function AccountMenu() {
     }
     const result = await authClient.sendVerificationEmail({
       email: normalizedEmail,
-      callbackURL: `${window.location.origin}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
+      callbackURL: `${getPublicOrigin()}/?account=login&message=${encodeURIComponent("Email verified. You can now log in.")}`,
     });
     setPending(false);
 
@@ -289,7 +301,7 @@ export function AccountMenu() {
     }
     const result = await authClient.requestPasswordReset({
       email: normalizedEmail,
-      redirectTo: `${window.location.origin}/?account=reset`,
+      redirectTo: `${getPublicOrigin()}/?account=reset`,
       fetchOptions: fetchOptions(),
     });
     setPending(false);

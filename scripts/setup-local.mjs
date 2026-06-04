@@ -261,6 +261,7 @@ async function ensureEnvFile() {
   const localEnv = `${databaseLine}
 BETTER_AUTH_SECRET=${secret()}
 BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 GAME_TICKET_SECRET=${secret()}
 NEXT_PUBLIC_HERE_TO_SLAY_URL=http://localhost:5000/
 HERE_TO_SLAY_AUTH_REQUIRED=true

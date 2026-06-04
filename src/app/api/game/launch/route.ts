@@ -6,9 +6,25 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const productionGameUrl = "https://game.miguisanson.dev/";
+const productionSiteUrl = "https://miguisanson.dev/";
 
-function accountRedirect(request: NextRequest, account: string, message?: string) {
-  const url = new URL("/", request.url);
+function getSiteUrl() {
+  const configuredUrl = process.env.BETTER_AUTH_URL?.trim() || productionSiteUrl;
+  const url = new URL(configuredUrl);
+  const isLocalHost = ["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(url.hostname);
+
+  if (process.env.NODE_ENV === "production" && isLocalHost) {
+    console.error(`[game launch] Ignoring local BETTER_AUTH_URL in production: ${configuredUrl}`);
+    return new URL(productionSiteUrl);
+  }
+
+  return url;
+}
+
+function accountRedirect(account: string, message?: string) {
+  const url = getSiteUrl();
+  url.pathname = "/";
+  url.search = "";
   url.searchParams.set("account", account);
   url.searchParams.set("next", "/api/game/launch");
   if (message) {
@@ -37,11 +53,11 @@ export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers });
 
   if (!session) {
-    return accountRedirect(request, "login", "Log in or create an account to join the tabletop.");
+    return accountRedirect("login", "Log in or create an account to join the tabletop.");
   }
 
   if (!session.user.emailVerified) {
-    return accountRedirect(request, "verify", "Verify your email address before joining the tabletop.");
+    return accountRedirect("verify", "Verify your email address before joining the tabletop.");
   }
 
   const user = session.user as typeof session.user & {

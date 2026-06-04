@@ -86,6 +86,7 @@ function requireProductionEnv() {
     requireEnvValue(name);
   }
   requirePublicUrl("BETTER_AUTH_URL");
+  requirePublicUrl("NEXT_PUBLIC_SITE_URL");
   requirePublicUrl("NEXT_PUBLIC_HERE_TO_SLAY_URL");
 
   if (!process.env.RESEND_API_KEY?.trim() && !hasCompleteSmtpConfig()) {

@@ -87,11 +87,13 @@ fi
 
 require_env_value "BETTER_AUTH_SECRET"
 require_env_value "BETTER_AUTH_URL"
+require_env_value "NEXT_PUBLIC_SITE_URL"
 require_env_value "GAME_TICKET_SECRET"
 require_env_value "NEXT_PUBLIC_HERE_TO_SLAY_URL"
 require_env_value "AUTH_EMAIL_FROM"
 require_env_value "RESEND_API_KEY"
 require_public_url "BETTER_AUTH_URL"
+require_public_url "NEXT_PUBLIC_SITE_URL"
 require_public_url "NEXT_PUBLIC_HERE_TO_SLAY_URL"
 
 if grep -Eq "^RESEND_API_KEY=$|^RESEND_API_KEY=replace" .env.local; then
