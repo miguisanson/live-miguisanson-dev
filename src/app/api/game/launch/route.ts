@@ -5,6 +5,8 @@ import { createGameTicket } from "@/lib/game-tickets";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const productionGameUrl = "https://game.miguisanson.dev/";
+
 function accountRedirect(request: NextRequest, account: string, message?: string) {
   const url = new URL("/", request.url);
   url.searchParams.set("account", account);
@@ -14,6 +16,21 @@ function accountRedirect(request: NextRequest, account: string, message?: string
   }
   url.hash = "projects";
   return NextResponse.redirect(url);
+}
+
+function getGameUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_HERE_TO_SLAY_URL?.trim() || productionGameUrl;
+  const url = new URL(configuredUrl);
+  const isLocalHost = ["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(url.hostname);
+
+  if (process.env.NODE_ENV === "production" && isLocalHost) {
+    console.error(
+      `[game launch] Ignoring local NEXT_PUBLIC_HERE_TO_SLAY_URL in production: ${configuredUrl}`,
+    );
+    return new URL(productionGameUrl);
+  }
+
+  return url;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,7 +50,7 @@ export async function GET(request: NextRequest) {
   };
   const username = user.displayUsername ?? user.username ?? user.name;
   const ticket = await createGameTicket({ id: user.id, username });
-  const gameUrl = new URL(process.env.NEXT_PUBLIC_HERE_TO_SLAY_URL ?? "http://localhost:5000/");
+  const gameUrl = getGameUrl();
   gameUrl.hash = `ticket=${encodeURIComponent(ticket)}`;
 
   return NextResponse.redirect(gameUrl);

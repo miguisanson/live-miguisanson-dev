@@ -47,7 +47,7 @@ class Server {
     requestFreePass = false;
 
     connect(address) {
-        if(!address) address = "localhost:8080";
+        if(!address) address = "game.miguisanson.dev";
 
         let regExp = /(?<=:\/\/).*/; //search for after :// as in http:// https://
         if(address.search(regExp) != -1) {

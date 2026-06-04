@@ -4,7 +4,7 @@ import { initialize as initializeAssets } from "./assets.js";
 import { createChat } from "./boardInterface.js";
 import { createSmallBody, Element} from "./tinyContentHtml.js";
 
-const defaultProjectHost = window.location.origin || "http://localhost:5000";
+const defaultProjectHost = window.location.origin || "https://game.miguisanson.dev";
 const defaultHowTo = "https://miguisanson.dev/projects/here-to-slay-online-tabletop";
 const verboseTroubleshoot = false;
 

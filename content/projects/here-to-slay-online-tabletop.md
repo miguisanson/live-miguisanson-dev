@@ -17,8 +17,8 @@ Here to Slay Online Tabletop is a fan-created virtual tabletop for playing Here 
 
 ## Private lobby setup
 
-Private hosting remains a separate Java service. Install Java 21 or later, run `npm run game:start`, then visit `http://localhost:5000/`. A tunnel such as Cloudflare Tunnel can expose that private lobby to invited players. Set `NEXT_PUBLIC_HERE_TO_SLAY_URL` when building the portfolio so its project card opens the public tunnel URL.
+Private hosting remains a separate Java service. On the production server, the public portfolio launch button points to `https://game.miguisanson.dev/`. A tunnel such as Cloudflare Tunnel can expose that private lobby to invited players. Set `NEXT_PUBLIC_HERE_TO_SLAY_URL=https://game.miguisanson.dev/` when building the portfolio so its project card opens the public tunnel URL.
 
 ## Source integration
 
-The `games/here-to-slay` folder contains the Spring Boot game source and browser client. The portfolio defaults to `http://localhost:5000/` during local development. A deployed portfolio must use a public tunnel URL because a visitor cannot reach a server running on another person's `localhost`.
+The `games/here-to-slay` folder contains the Spring Boot game source and browser client. A deployed portfolio must use a public tunnel URL because a visitor cannot reach a server running on another person's local machine.

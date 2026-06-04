@@ -60,7 +60,7 @@ class Server {
 
     connect(address) {
 //        connect(address, reconnectCount, immediatelyJoin) {
-        if(!address) address = window.location.host || "localhost:5000";
+        if(!address) address = window.location.host || "game.miguisanson.dev";
         const endpoint = "/multiplay";
 
         let regExp = /(?<=:\/\/).*/; //search for after :// as in http:// https://

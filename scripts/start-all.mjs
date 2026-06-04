@@ -69,16 +69,24 @@ function hasCompleteSmtpConfig() {
   );
 }
 
+function requirePublicUrl(name) {
+  requireEnvValue(name);
+  const url = new URL(process.env[name]);
+  if (["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(url.hostname)) {
+    throw new Error(`${name} must be a public URL for start:all. Received: ${process.env[name]}`);
+  }
+}
+
 function requireProductionEnv() {
   for (const name of [
     "BETTER_AUTH_SECRET",
-    "BETTER_AUTH_URL",
     "GAME_TICKET_SECRET",
-    "NEXT_PUBLIC_HERE_TO_SLAY_URL",
     "AUTH_EMAIL_FROM",
   ]) {
     requireEnvValue(name);
   }
+  requirePublicUrl("BETTER_AUTH_URL");
+  requirePublicUrl("NEXT_PUBLIC_HERE_TO_SLAY_URL");
 
   if (!process.env.RESEND_API_KEY?.trim() && !hasCompleteSmtpConfig()) {
     throw new Error("Email delivery is not configured. Set RESEND_API_KEY or complete SMTP settings in .env.local.");
