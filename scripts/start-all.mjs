@@ -77,6 +77,20 @@ function requirePublicUrl(name) {
   }
 }
 
+function requirePublicOriginList(name) {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    return;
+  }
+
+  for (const origin of value.split(",").map((item) => item.trim()).filter(Boolean)) {
+    const url = new URL(origin);
+    if (["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(url.hostname)) {
+      throw new Error(`${name} must not include local origins for start:all. Received: ${origin}`);
+    }
+  }
+}
+
 function requireProductionEnv() {
   for (const name of [
     "BETTER_AUTH_SECRET",
@@ -88,6 +102,7 @@ function requireProductionEnv() {
   requirePublicUrl("BETTER_AUTH_URL");
   requirePublicUrl("NEXT_PUBLIC_SITE_URL");
   requirePublicUrl("NEXT_PUBLIC_HERE_TO_SLAY_URL");
+  requirePublicOriginList("BETTER_AUTH_TRUSTED_ORIGINS");
 
   if (!process.env.RESEND_API_KEY?.trim() && !hasCompleteSmtpConfig()) {
     throw new Error("Email delivery is not configured. Set RESEND_API_KEY or complete SMTP settings in .env.local.");

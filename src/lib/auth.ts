@@ -17,10 +17,12 @@ import {
 import { hasTransactionalEmailProvider, sendTransactionalEmail } from "./email";
 
 const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-const defaultTrustedOrigins = [
+const productionTrustedOrigins = [
   "https://miguisanson.dev",
   "https://www.miguisanson.dev",
   "https://game.miguisanson.dev",
+];
+const localTrustedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
@@ -33,13 +35,27 @@ function getTrustedOrigins() {
   return Array.from(
     new Set(
       [
-        ...defaultTrustedOrigins,
+        ...productionTrustedOrigins,
+        ...(process.env.NODE_ENV === "production" ? [] : localTrustedOrigins),
         process.env.BETTER_AUTH_URL,
         ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
           .split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-      ].filter((origin): origin is string => Boolean(origin)),
+      ].filter((origin): origin is string => {
+        if (!origin) {
+          return false;
+        }
+        if (process.env.NODE_ENV !== "production") {
+          return true;
+        }
+        try {
+          const url = new URL(origin);
+          return !["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(url.hostname);
+        } catch {
+          return false;
+        }
+      }),
     ),
   );
 }

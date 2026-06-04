@@ -23,14 +23,13 @@ function getSiteUrl() {
 
 function accountRedirect(account: string, message?: string) {
   const url = getSiteUrl();
-  url.pathname = "/";
+  url.pathname = "/login";
   url.search = "";
   url.searchParams.set("account", account);
   url.searchParams.set("next", "/api/game/launch");
   if (message) {
     url.searchParams.set("message", message);
   }
-  url.hash = "projects";
   return NextResponse.redirect(url);
 }
 

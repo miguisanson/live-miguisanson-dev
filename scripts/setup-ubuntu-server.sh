@@ -53,6 +53,26 @@ require_public_url() {
   esac
 }
 
+require_public_origin_list() {
+  local key="$1"
+  local value
+  value="$(grep -E "^${key}=" .env.local | tail -n 1 | cut -d= -f2- || true)"
+  if [ -z "$value" ]; then
+    return
+  fi
+
+  IFS=',' read -ra origins <<< "$value"
+  for origin in "${origins[@]}"; do
+    origin="$(echo "$origin" | xargs)"
+    case "$origin" in
+      http://localhost:*|http://127.0.0.1:*|http://0.0.0.0:*|http://\[::1\]:*|https://localhost:*|https://127.0.0.1:*|https://0.0.0.0:*|https://\[::1\]:*)
+        echo "[setup:server] ${key} must not include local origins, but found ${origin}."
+        exit 1
+        ;;
+    esac
+  done
+}
+
 if [ "$(uname -s)" != "Linux" ]; then
   echo "[setup:server] This script is intended for Ubuntu/Linux servers."
   exit 1
@@ -95,6 +115,7 @@ require_env_value "RESEND_API_KEY"
 require_public_url "BETTER_AUTH_URL"
 require_public_url "NEXT_PUBLIC_SITE_URL"
 require_public_url "NEXT_PUBLIC_HERE_TO_SLAY_URL"
+require_public_origin_list "BETTER_AUTH_TRUSTED_ORIGINS"
 
 if grep -Eq "^RESEND_API_KEY=$|^RESEND_API_KEY=replace" .env.local; then
   echo "[setup:server] RESEND_API_KEY is empty or still a placeholder."
