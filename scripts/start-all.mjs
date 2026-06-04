@@ -54,6 +54,37 @@ function runPreflight(command, args) {
   }
 }
 
+function requireEnvValue(name) {
+  if (!process.env[name]?.trim()) {
+    throw new Error(`${name} is required. Set it in .env.local before running start:all.`);
+  }
+}
+
+function hasCompleteSmtpConfig() {
+  return Boolean(
+    process.env.SMTP_HOST?.trim() &&
+      process.env.SMTP_PORT?.trim() &&
+      process.env.SMTP_USER?.trim() &&
+      process.env.SMTP_PASS,
+  );
+}
+
+function requireProductionEnv() {
+  for (const name of [
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GAME_TICKET_SECRET",
+    "NEXT_PUBLIC_HERE_TO_SLAY_URL",
+    "AUTH_EMAIL_FROM",
+  ]) {
+    requireEnvValue(name);
+  }
+
+  if (!process.env.RESEND_API_KEY?.trim() && !hasCompleteSmtpConfig()) {
+    throw new Error("Email delivery is not configured. Set RESEND_API_KEY or complete SMTP settings in .env.local.");
+  }
+}
+
 function start(label, command, args, extraEnv = {}) {
   const child = spawn(command, args, {
     cwd: repoRoot,
@@ -108,6 +139,7 @@ process.once("SIGTERM", () => stopAll("SIGTERM"));
 process.once("exit", () => stopAll("SIGTERM"));
 
 console.log("[start:all] Starting the production portfolio and private Here to Slay lobby...");
+requireProductionEnv();
 console.log("[start:all] Applying auth migrations...");
 runPreflight(npm, ["run", "auth:migrate"]);
 
@@ -115,7 +147,8 @@ const portfolioPort = getPort("PORT", "3000");
 const lobbyPort = getPort("HERE_TO_SLAY_PORT", "5000");
 
 if (await isPortListening(portfolioPort)) {
-  console.log(`[start:all] Port ${portfolioPort} is already in use. Leaving the existing portfolio server running.`);
+  console.error(`[start:all] Port ${portfolioPort} is already in use. Stop the existing portfolio server, then rerun npm run start:all.`);
+  process.exit(1);
 } else {
   start("portfolio", npm, ["run", "start", "--", "-p", String(portfolioPort)], {
     NODE_ENV: "production",
@@ -123,11 +156,9 @@ if (await isPortListening(portfolioPort)) {
 }
 
 if (await isPortListening(lobbyPort)) {
-  console.log(`[start:all] Port ${lobbyPort} is already in use. Leaving the existing lobby server running.`);
+  console.error(`[start:all] Port ${lobbyPort} is already in use. Stop the existing lobby server, then rerun npm run start:all.`);
+  stopAll();
+  process.exit(1);
 } else {
   start("Here to Slay lobby", process.execPath, [hereToSlayScript, "start"]);
-}
-
-if (children.size === 0) {
-  console.log("[start:all] Both services were already running.");
 }
