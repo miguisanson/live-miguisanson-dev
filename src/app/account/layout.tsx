@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { AccountTabs } from "@/components/account/AccountTabs";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -21,20 +21,7 @@ export default async function AccountLayout({ children }: { children: ReactNode 
         <div className="post-description">Profile, security, and tabletop activity.</div>
       </header>
 
-      <nav className="account-tabs" aria-label="Account sections">
-        <Link className="account-tab" href="/account">
-          Overview
-        </Link>
-        <Link className="account-tab" href="/account/profile">
-          Profile
-        </Link>
-        <Link className="account-tab" href="/account/security">
-          Security
-        </Link>
-        <Link className="account-tab" href="/account/activity">
-          Activity
-        </Link>
-      </nav>
+      <AccountTabs />
 
       {children}
     </section>

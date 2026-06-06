@@ -1544,6 +1544,14 @@ button#theme-toggle:focus-visible {
     text-decoration: none;
 }
 
+.account-tab.is-active,
+.account-tab.is-active:hover,
+.account-tab.is-active:focus-visible {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--theme);
+}
+
 .account-primary-action {
     border-color: var(--primary);
     background: var(--primary);
