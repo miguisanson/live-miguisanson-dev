@@ -7,7 +7,17 @@ export const accountPolicy = {
   displayNameMinLength: 1,
   displayNameMaxLength: 50,
   bioMaxLength: 280,
+  locationMaxLength: 80,
+  websiteMaxLength: 200,
+  statusMaxLength: 80,
+  quoteMaxLength: 160,
+  socialHandleMaxLength: 120,
+  favoriteGamesMax: 6,
+  postMaxLength: 2000,
 };
+
+export const profileBackgroundPatterns = ["none", "dots", "grid", "diagonal"] as const;
+export type ProfileBackgroundPattern = (typeof profileBackgroundPatterns)[number];
 
 const commonWeakPasswords = new Set([
   "123456789",
@@ -93,6 +103,76 @@ export function validateDisplayName(value: string) {
 export function validateBio(value: string) {
   if (value.length > accountPolicy.bioMaxLength) {
     return `Bio must be ${accountPolicy.bioMaxLength} characters or fewer.`;
+  }
+  return "";
+}
+
+export function validateLocation(value: string) {
+  if (value.length > accountPolicy.locationMaxLength) {
+    return `Location must be ${accountPolicy.locationMaxLength} characters or fewer.`;
+  }
+  return "";
+}
+
+export function validateWebsite(value: string) {
+  const website = value.trim();
+  if (!website) {
+    return "";
+  }
+  if (website.length > accountPolicy.websiteMaxLength) {
+    return `Website must be ${accountPolicy.websiteMaxLength} characters or fewer.`;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(website);
+  } catch {
+    return "Enter a full URL starting with https://";
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return "Website must start with http:// or https://";
+  }
+  return "";
+}
+
+export function validateStatus(value: string) {
+  if (value.length > accountPolicy.statusMaxLength) {
+    return `Status must be ${accountPolicy.statusMaxLength} characters or fewer.`;
+  }
+  return "";
+}
+
+export function validateQuote(value: string) {
+  if (value.length > accountPolicy.quoteMaxLength) {
+    return `Quote must be ${accountPolicy.quoteMaxLength} characters or fewer.`;
+  }
+  return "";
+}
+
+export function validateSocialHandle(value: string) {
+  if (value.length > accountPolicy.socialHandleMaxLength) {
+    return `Each social link must be ${accountPolicy.socialHandleMaxLength} characters or fewer.`;
+  }
+  return "";
+}
+
+export function validateThemeColor(value: string) {
+  const color = value.trim();
+  if (!color) {
+    return "";
+  }
+  if (!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
+    return "Theme color must be a hex value like #4f46e5.";
+  }
+  return "";
+}
+
+export function validatePostBody(value: string) {
+  const body = value.trim();
+  if (body.length < 1) {
+    return "Post cannot be empty.";
+  }
+  if (body.length > accountPolicy.postMaxLength) {
+    return `Post must be ${accountPolicy.postMaxLength} characters or fewer.`;
   }
   return "";
 }

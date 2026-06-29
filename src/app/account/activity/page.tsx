@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { auth } from "@/lib/auth";
 import { getUserGameLaunches } from "@/lib/profile-data";
 
@@ -37,18 +36,13 @@ export default async function AccountActivityPage() {
             launches.map((launch) => (
               <div className="account-history-item" key={launch.createdAt}>
                 <span>{dateLabel(launch.createdAt)}</span>
-                <strong>{launch.destination ?? "Here to Slay"}</strong>
+                <strong>{launch.game}</strong>
               </div>
             ))
           ) : (
             <p className="account-empty">No game launches yet.</p>
           )}
         </div>
-      </section>
-
-      <section className="account-card account-compact-action">
-        <h2>Here to Slay</h2>
-        <GameLaunchButton className="account-small-button account-primary-action">Launch game</GameLaunchButton>
       </section>
     </div>
   );

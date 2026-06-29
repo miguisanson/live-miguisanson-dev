@@ -34,7 +34,7 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
     { href: "/", label: "Home", icon: <HomeIcon />, match: "exact" },
     { href: "/resume", label: "Resume", icon: <ResumeIcon />, match: "prefix" },
     { href: "/games", label: "Games", icon: <GamesIcon />, match: "prefix" },
-    { href: "/blog", label: "Community", icon: <CommunityIcon />, match: "prefix" },
+    { href: "/community", label: "Community", icon: <CommunityIcon />, match: "prefix" },
   ];
   if (isAdmin) {
     items.push({ href: "/admin", label: "Admin", icon: <AdminIcon />, match: "prefix" });

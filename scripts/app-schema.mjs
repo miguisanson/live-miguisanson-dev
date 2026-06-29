@@ -161,10 +161,36 @@ export async function ensureAppSchema(repoRoot) {
       `,
     );
 
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "post" (
+          "id" text not null primary key,
+          "userId" text not null references "user" ("id") on delete cascade,
+          "body" text not null,
+          "visibility" text not null default 'public',
+          "createdAt" text not null,
+          "updatedAt" text not null
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "post" (
+          "id" text not null primary key,
+          "userId" text not null references "user" ("id") on delete cascade,
+          "body" text not null,
+          "visibility" text not null default 'public',
+          "createdAt" timestamptz not null,
+          "updatedAt" timestamptz not null
+        );
+      `,
+    );
+
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_createdAt" ON "auditLog" ("createdAt");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_eventType" ON "auditLog" ("eventType");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_actorUserId" ON "auditLog" ("actorUserId");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_session_expiresAt" ON "session" ("expiresAt");`);
+    await exec(db, `CREATE INDEX IF NOT EXISTS "idx_post_userId" ON "post" ("userId");`);
+    await exec(db, `CREATE INDEX IF NOT EXISTS "idx_post_visibility_createdAt" ON "post" ("visibility", "createdAt");`);
     console.log("[app] Admin and audit schema ready.");
   } finally {
     if (db.dialect === "postgres") {

@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { href: "/account", label: "Account settings" },
   { href: "/account/profile", label: "Edit profile" },
-  { href: "/account/security", label: "Security" },
   { href: "/account/activity", label: "Activity" },
+  { href: "/account/security", label: "Security" },
 ];
 
 export function AccountTabs() {

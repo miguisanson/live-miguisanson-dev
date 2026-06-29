@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     actor: user,
     targetUserId: user.id,
     targetEmail: user.email,
-    metadata: { success: true, destination: gameUrl.origin },
+    metadata: { success: true, destination: gameUrl.origin, game: "Here to Slay" },
     request,
   });
 

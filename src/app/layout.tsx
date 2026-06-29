@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
+import { getSiteBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const sans = Geist({
@@ -10,12 +11,13 @@ const sans = Geist({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteBaseUrl()),
   title: {
     default: "miguisanson.dev",
     template: "%s | miguisanson.dev",
   },
   description:
-    "Miguel Joaquin A. Sanson's personal technology hub for portfolio work, project case studies, AI research prototypes, and learning notes.",
+    "miguisanson.dev — a small community platform for portfolio work, games, member profiles, and posts.",
 };
 
 export default function RootLayout({
