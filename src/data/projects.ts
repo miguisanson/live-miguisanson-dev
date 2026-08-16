@@ -15,28 +15,6 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    slug: "consumer-iq",
-    title: "P&G Consumer IQ Prototype",
-    description:
-      "A front-end concept app for consumer intelligence, competitor analytics, operations monitoring, incident handling, and mock AI-assisted insights.",
-    status: "Prototype",
-    tech: ["React", "TypeScript", "Vite", "Mock data", "Local persistence"],
-    image: "/consumer_iq_preview.svg",
-    liveUrl: "/prototypes/consumer-iq",
-    featured: true,
-  },
-  {
-    slug: "usls-graduate-lifecycle",
-    title: "USLS Graduate Student Lifecycle Platform",
-    description:
-      "A thesis MVP concept for monitoring graduate student progress, tasks, documents, scheduling, alerts, analytics, and decision-support workflows.",
-    status: "Prototype",
-    tech: ["React", "TypeScript", "Analytics UI", "Mock data", "Decision support"],
-    image: "/usls_lifecycle_preview.svg",
-    liveUrl: "/prototypes/usls-graduate-lifecycle",
-    featured: true,
-  },
-  {
     slug: "linux-home-server",
     title: "Linux Home Server",
     description:
@@ -45,17 +23,6 @@ export const projects: Project[] = [
     tech: ["Linux", "Nginx", "MySQL", "Cloudflare Tunnel", "Monitoring"],
     image: "/homebrew_hosting.png",
     liveLabel: "View Page",
-    featured: true,
-  },
-  {
-    slug: "ai-research",
-    title: "AI Research",
-    description:
-      "Mock-first support tools for QA, recruitment, and HR workflows with structured draft outputs, safe demo data, and human review controls.",
-    status: "Prototype",
-    tech: ["Next.js", "TypeScript", "Mock data", "Workflow UI", "Human review"],
-    image: "/ai_research_preview.svg",
-    liveUrl: "/ai-research",
     featured: true,
   },
   {

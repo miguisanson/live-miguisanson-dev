@@ -96,7 +96,7 @@ function resolveGameName(metadata: string): string {
   } catch {
     // fall through
   }
-  return "Here to Slay";
+  return "Game";
 }
 
 function boolVal(value: unknown): boolean {
@@ -374,7 +374,7 @@ export async function getProfileBadges(profile: PublicProfile): Promise<Badge[]>
     badges.push({ key: "early", label: "Early member", title: "One of the first members" });
   }
   if (launches > 0) {
-    badges.push({ key: "player", label: "Here to Slay player", title: "Launched the tabletop" });
+    badges.push({ key: "player", label: "Game player", title: "Played a site game" });
   }
   if (posts > 0) {
     badges.push({ key: "writer", label: "Writer", title: "Published a post" });

@@ -185,12 +185,35 @@ export async function ensureAppSchema(repoRoot) {
       `,
     );
 
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "gameRoom" (
+          "code" text not null primary key,
+          "gameSlug" text not null,
+          "ownerUserId" text not null references "user" ("id") on delete cascade,
+          "createdAt" text not null,
+          "expiresAt" text not null
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "gameRoom" (
+          "code" text not null primary key,
+          "gameSlug" text not null,
+          "ownerUserId" text not null references "user" ("id") on delete cascade,
+          "createdAt" timestamptz not null,
+          "expiresAt" timestamptz not null
+        );
+      `,
+    );
+
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_createdAt" ON "auditLog" ("createdAt");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_eventType" ON "auditLog" ("eventType");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_actorUserId" ON "auditLog" ("actorUserId");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_session_expiresAt" ON "session" ("expiresAt");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_post_userId" ON "post" ("userId");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_post_visibility_createdAt" ON "post" ("visibility", "createdAt");`);
+    await exec(db, `CREATE INDEX IF NOT EXISTS "idx_gameRoom_expiresAt" ON "gameRoom" ("expiresAt");`);
     console.log("[app] Admin and audit schema ready.");
   } finally {
     if (db.dialect === "postgres") {

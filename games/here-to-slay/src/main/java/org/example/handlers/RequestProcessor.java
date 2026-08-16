@@ -16,42 +16,34 @@ import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class RequestProcessor {
-    private static RequestProcessor instance = null;
-    public static SocketConnectionHandler server = null;
-    private static GameState gameState = null;
-    private static final HashMap<Long, User> players = new HashMap<>();
+    private final SocketConnectionHandler server;
+    private final String roomId;
+    private GameState gameState = null;
+    private final HashMap<Long, User> players = new HashMap<>();
     private static final ObjectMapper objMapper = new ObjectMapper();
-    private static Integer itemCount = null;
+    private Integer itemCount = null;
 
     //TODO: key=userID, value: last 'parentRequest' ID;
     //Purpose: if a parentRequest is accepted, stored here;
     //Childrequest holding parentRequestID entry? apply + broadcast changes
     //Childrequest holding parentRequestID has no entry? discard request
-    private static HashMap<Long, Long> requestTracker = new HashMap<>();
+    private final HashMap<Long, Long> requestTracker = new HashMap<>();
 
-    private static final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     //purpose: quick key=id, value=object; does NOT hold players (players Map exists)
-    private static final HashMap<Long, Object> quickRef = new HashMap<>();
+    private final HashMap<Long, Object> quickRef = new HashMap<>();
 
     //purpose: store players live at board reset, for re-broadcasting
-    private static final HashMap<WebSocketSession, User> oldSessions = new HashMap<>();
+    private final HashMap<WebSocketSession, User> oldSessions = new HashMap<>();
 
-    private RequestProcessor() {
-    }
-
-    public static RequestProcessor RequestProcessor() {
-        if(instance == null) instance = new RequestProcessor();
-
-        return instance;
-    }
-
-    public void setServer(SocketConnectionHandler serverApp) {
-        server = serverApp;
+    public RequestProcessor(SocketConnectionHandler server, String roomId) {
+        this.server = server;
+        this.roomId = roomId;
     }
 
     public void sendAllGameStateStatus() {
-        server.getConnections().forEach(this::sendGameStateStatus);
+        server.getConnections(roomId).forEach(this::sendGameStateStatus);
     }
     public void sendGameStateStatus(WebSocketSession conn) {
         SimpleRequest request = new SimpleRequest();
@@ -106,14 +98,14 @@ public class RequestProcessor {
 
                     //broadcast to all
                     try {
-                        server.broadcast(objMapper.writeValueAsString(message));
+                        server.broadcast(roomId, objMapper.writeValueAsString(message));
                     } catch (Exception e) {
                         System.out.println("Error at mapping");
                     }
                     break;
                 case "ChatUpdate":
                     //simply push to everyone
-                    server.broadcast(s);
+                    server.broadcast(roomId, s);
                     break;
                 case "ClientUpdate":
                     if(!players.containsKey(message.player.id)) {
@@ -125,7 +117,7 @@ public class RequestProcessor {
                     lock.lock();
                     try {
                         if(updatePlayer(message.player)) {
-                            server.broadcast(s);
+                            server.broadcast(roomId, s);
                         }
                     } finally {
                         lock.unlock();
@@ -194,7 +186,7 @@ public class RequestProcessor {
                     user.hand.selected = 0;
                     user.hand.browsing = 0;
 
-                    WebSocketSession key = SocketConnectionHandler.clients.get(entry.getKey().toString());
+                    WebSocketSession key = server.getClient(roomId, entry.getKey().toString());
                     oldSessions.put(key, user);
                         }
                 );
@@ -202,7 +194,7 @@ public class RequestProcessor {
         players.clear();
 
         //broadcast all to wipe gameState, clients to wipe, but for initiator to proceed step2
-        server.broadcast(message);
+        server.broadcast(roomId, message);
 
         //Clientside - only the initiator actions this request, pushing new gameState
         //gameSetup, if '!oldSessions.empty()', will broadcast OTHER players force-join to new board state
@@ -379,7 +371,7 @@ public class RequestProcessor {
         sr.setMessageHeader("ChatUpdate").setExplicit("Server error!");
 
         try {
-            server.broadcast(objMapper.writeValueAsString(sr));
+            server.broadcast(roomId, objMapper.writeValueAsString(sr));
         } catch(JsonProcessingException e) {
             System.out.println("Error in " + getClass().getPackageName() +
                     " RequestProcessor.sendError()");
@@ -450,7 +442,7 @@ public class RequestProcessor {
 
         try {
             String str = objMapper.writeValueAsString(sr);
-            server.broadcast(str);
+            server.broadcast(roomId, str);
         } catch(JsonProcessingException e) {
             System.out.println("Could not JSONify 'newItemCount'.");
             System.out.println(e.getMessage());
@@ -539,7 +531,7 @@ public class RequestProcessor {
                 .setExplicit("Add this new player to all clients' player tracker.");
         try {
             String message = objMapper.writeValueAsString(sr);
-            server.broadcast(message);
+            server.broadcast(roomId, message);
 
         } catch(JsonProcessingException e) {
             System.out.println("Could not JSONify 'broadcastNewPlayer'.");
@@ -562,7 +554,7 @@ public class RequestProcessor {
 
         try {
             String message = objMapper.writeValueAsString(sr);
-            server.broadcast(message);
+            server.broadcast(roomId, message);
         } catch(JsonProcessingException e) {
             System.out.println("Could not JSONify 'broadcastDisconnection'.");
             System.out.println(e.getMessage());

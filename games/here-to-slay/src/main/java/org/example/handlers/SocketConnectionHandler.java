@@ -10,24 +10,29 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-// Socket-Connection Configuration class
 public class SocketConnectionHandler extends TextWebSocketHandler implements SubProtocolCapable {
-
-    final List<WebSocketSession> webSocketSessions = Collections.synchronizedList(new ArrayList<>());
-    //For tracking new and returning players
-    public static Map<String, WebSocketSession> clients = new ConcurrentHashMap<>();
-    public static RequestProcessor requestProcessor = RequestProcessor.RequestProcessor();
-    public static boolean VERBOSE = false;
+    private static final Duration ROOM_IDLE_TTL = Duration.ofMinutes(30);
     private static final GameTicketVerifier gameTicketVerifier = new GameTicketVerifier();
-    public SocketConnectionHandler() {
-        requestProcessor.setServer(this);
-    }
+    private static final ScheduledExecutorService roomCleanup = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "here-to-slay-room-cleanup");
+        thread.setDaemon(true);
+        return thread;
+    });
 
-    //overrides default 'false' to enable partial messages
+    private final Map<String, RoomSession> rooms = new ConcurrentHashMap<>();
+    public static boolean VERBOSE = false;
+
     @Override
     public boolean supportsPartialMessages() {
         return true;
@@ -38,94 +43,70 @@ public class SocketConnectionHandler extends TextWebSocketHandler implements Sub
         return List.of("here-to-slay");
     }
 
-    // This method is executed when client tries to connect
-    // to the sockets
     @Override
-    public void
-    afterConnectionEstablished(WebSocketSession session)
-            throws Exception
-    {
-
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
-
-        //enables place to store partial messages
         session.getAttributes().put("messageRoom", new StringBuilder(session.getTextMessageSizeLimit()));
 
-        if(VERBOSE) {
-            System.out.println("~~Start of Connection~~");
-            System.out.println("Session remoteAdd: " + session.getRemoteAddress());
-            System.out.println("Session ID: " + session.getId());
-        }
-
-        // Pull the numeric player value expected by the existing tabletop state model.
-        String[] stringArr = session.getUri().getPath().split("/");
-        String[] userSegment = stringArr[stringArr.length - 1].split("=", 2);
-        if (userSegment.length != 2 || !"user".equals(userSegment[0])) {
+        String playerId = playerId(session);
+        if (playerId == null) {
             session.close(new CloseStatus(1008, "A player identity is required."));
             return;
         }
-        String name = userSegment[1];
 
+        GameTicketVerifier.TicketIdentity identity;
         try {
-            GameTicketVerifier.TicketIdentity identity = gameTicketVerifier.verify(accountTicket(session), name);
-            if (identity != null) {
-                session.getAttributes().put("accountId", identity.accountId());
-                session.getAttributes().put("accountUsername", identity.username());
-            }
+            identity = gameTicketVerifier.verify(accountTicket(session), playerId);
         } catch (IllegalArgumentException exception) {
             System.out.println("Rejected websocket connection: " + exception.getMessage());
             session.close(new CloseStatus(1008, "A valid account game ticket is required."));
             return;
         }
 
-        WebSocketSession wrappedSession =
-                new ConcurrentWebSocketSessionDecorator(session, 2000, session.getTextMessageSizeLimit());
+        String roomId = identity == null ? "LOCALDEV" : identity.roomId();
+        session.getAttributes().put("accountId", identity == null ? "local" : identity.accountId());
+        session.getAttributes().put("accountUsername", identity == null ? "Local player" : identity.username());
+        session.getAttributes().put("roomId", roomId);
+        session.getAttributes().put("playerId", playerId);
 
-        //If reconnecting, replace and purge 'older' connection
-        if(clients.containsKey(name)) {
-//            WebSocketSession oldConnection = clients.put(name, session); //replaces old websocket
-            WebSocketSession oldConnection =
-                    clients.put(name, wrappedSession); //replaces old websocket
+        RoomSession room = rooms.computeIfAbsent(roomId, key -> new RoomSession(this, key));
+        room.cancelCleanup();
 
-            session.sendMessage(new TextMessage("Reconnection successful. Terminating older instance."));
-
-            System.out.println("Returning player! : " + name);
-            if(oldConnection != null) {
-                if(oldConnection.isOpen()) {
-                    System.out.println("Old session found still OPEN, proceeding");
-
-                    if(!oldConnection.getId().equals(session.getId())) {
-                        oldConnection.sendMessage(new TextMessage("Yer Old"));
-                        oldConnection.close(CloseStatus.GOING_AWAY);    //client handles as 'new connection found'
-                        System.out.println("Terminated older connection: " + oldConnection.getId());
-                    }
-                } else {
-                    System.out.println("Old session found already CLOSED via WebSocketSession.isOpen()");
-                }
-            }
-
-            //TODO- if ID already exists in GameState, return message with "reapply name + color" to client
-
-        } else {
-            clients.put(name, wrappedSession);
-            System.out.printf("Let's welcome the newcomer, %s!%n", name);
+        WebSocketSession wrapped = new ConcurrentWebSocketSessionDecorator(
+                session,
+                2000,
+                session.getTextMessageSizeLimit()
+        );
+        WebSocketSession oldConnection = room.clients.put(playerId, wrapped);
+        if (oldConnection != null && oldConnection.isOpen() && !oldConnection.getId().equals(session.getId())) {
+            room.connections.removeIf(item -> item.getId().equals(oldConnection.getId()));
+            oldConnection.sendMessage(new TextMessage("This account reconnected in another tab."));
+            oldConnection.close(CloseStatus.GOING_AWAY);
         }
 
-        session.sendMessage(new TextMessage("We are hosting at: %s".formatted("WIP")));
-        requestProcessor.sendHostAddress(session);
-        broadcast("new connection: %s".formatted(name));
+        room.connections.add(wrapped);
+        wrapped.sendMessage(new TextMessage("Connected to private room " + roomId + "."));
+        room.processor.sendHostAddress(wrapped);
+        room.processor.sendGameStateStatus(wrapped);
+        broadcast(roomId, "new connection: " + playerId);
 
-        //Inform new client regarding gameState
-        requestProcessor.sendGameStateStatus(session);
-
-        // Adding the session into the list
-        webSocketSessions.add(wrappedSession);
-
-        System.out.println("Connections remaining: " + getConnections().size());
-        if(VERBOSE) {
-            System.out.println("Current is still open:" + session.isOpen());
-            System.out.println("~~~EndOf\"startConnection\"~~~");
+        System.out.printf("Room %s connections: %d; active rooms: %d%n",
+                roomId, room.connections.size(), rooms.size());
+        if (VERBOSE) {
+            System.out.println("Session ID: " + session.getId());
         }
+    }
+
+    private String playerId(WebSocketSession session) {
+        if (session.getUri() == null) {
+            return null;
+        }
+        String[] path = session.getUri().getPath().split("/");
+        String[] segment = path[path.length - 1].split("=", 2);
+        if (segment.length != 2 || !"user".equals(segment[0]) || !segment[1].matches("\\d+")) {
+            return null;
+        }
+        return segment[1];
     }
 
     private String accountTicket(WebSocketSession session) {
@@ -145,74 +126,114 @@ public class SocketConnectionHandler extends TextWebSocketHandler implements Sub
         return null;
     }
 
-    // When client disconnect from WebSocket then this
-    // method is called
     @Override
-    public void afterConnectionClosed(WebSocketSession session,
-                                      CloseStatus status) throws Exception
-    {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        System.out.println(session.getId()
-                + " Disconnected");
-        System.out.println(status.getReason());
-        System.out.println(status.getCode());
-
-        AtomicReference<String> userId = new AtomicReference<>();
-        clients.forEach((key, value) -> {
-            if (value.getId().equals(session.getId())) {
-                userId.set(key);
-            }
-        });
-
-        // Removing the connection info from the list
-        webSocketSessions.removeIf(item -> item.getId().equals(session.getId()));
-        if (userId.get() != null) {
-            requestProcessor.broadcastDisconnection(userId.get());
+        String roomId = (String) session.getAttributes().get("roomId");
+        String playerId = (String) session.getAttributes().get("playerId");
+        if (roomId == null || playerId == null) {
+            return;
+        }
+        RoomSession room = rooms.get(roomId);
+        if (room == null) {
+            return;
         }
 
-        System.out.println("Connections remaining: " + webSocketSessions.size());
+        room.connections.removeIf(item -> item.getId().equals(session.getId()));
+        WebSocketSession activeConnection = room.clients.get(playerId);
+        boolean hasReplacement = activeConnection != null && !activeConnection.getId().equals(session.getId());
+        if (!hasReplacement) {
+            room.clients.remove(playerId);
+            room.processor.broadcastDisconnection(playerId);
+        }
+
+        System.out.printf("Room %s connections remaining: %d%n", roomId, room.connections.size());
+        if (room.connections.isEmpty()) {
+            room.scheduleCleanup();
+        }
     }
 
-    // It will handle exchanging of message in the network
-    // It will have a session info who is sending the
-    // message Also the Message object passes as parameter
     @Override
-    public void handleMessage(WebSocketSession session,
-                              WebSocketMessage<?> message)
-            throws Exception
-    {
+    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         super.handleMessage(session, message);
+        String roomId = (String) session.getAttributes().get("roomId");
+        RoomSession room = rooms.get(roomId);
+        if (room == null) {
+            session.close(new CloseStatus(1011, "The room is no longer available."));
+            return;
+        }
 
-        StringBuilder sbTemp = (StringBuilder) session.getAttributes().get("messageRoom");
-        if(!message.isLast()) {
-            sbTemp.append(message.getPayload());
+        StringBuilder partial = (StringBuilder) session.getAttributes().get("messageRoom");
+        if (!message.isLast()) {
+            partial.append(message.getPayload());
+            return;
+        }
+
+        String payload;
+        if (!partial.isEmpty()) {
+            partial.append(message.getPayload());
+            payload = partial.toString();
+            partial.setLength(0);
         } else {
-            if(!sbTemp.isEmpty()) { //not empty
-                sbTemp.append(message.getPayload());
-
-                requestProcessor.handleMessage(session, sbTemp.toString());
-
-                //clear StringBuilder
-                sbTemp.setLength(0);
-                sbTemp.trimToSize();
-            } else {
-                requestProcessor.handleMessage(session, (String) message.getPayload());
-            }
+            payload = (String) message.getPayload();
         }
+        room.processor.handleMessage(session, payload);
     }
 
-    public void broadcast(String message) {
+    public void broadcast(String roomId, String message) {
         TextMessage payload = new TextMessage(message);
-        for(WebSocketSession session : webSocketSessions) {
+        for (WebSocketSession session : getConnections(roomId)) {
             try {
-                if(session.isOpen()) session.sendMessage(payload);
-            } catch (IOException e) {
-                System.out.println("Error trying to send message to client! " + session.getId());
+                if (session.isOpen()) {
+                    session.sendMessage(payload);
+                }
+            } catch (IOException exception) {
+                System.out.println("Error sending room message to " + session.getId());
             }
         }
     }
 
-    public List<WebSocketSession> getConnections() {
-        return webSocketSessions;
+    public List<WebSocketSession> getConnections(String roomId) {
+        RoomSession room = rooms.get(roomId);
+        if (room == null) {
+            return List.of();
+        }
+        synchronized (room.connections) {
+            return new ArrayList<>(room.connections);
+        }
+    }
+
+    public WebSocketSession getClient(String roomId, String playerId) {
+        RoomSession room = rooms.get(roomId);
+        return room == null ? null : room.clients.get(playerId);
+    }
+
+    private final class RoomSession {
+        private final String id;
+        private final List<WebSocketSession> connections = Collections.synchronizedList(new ArrayList<>());
+        private final Map<String, WebSocketSession> clients = new ConcurrentHashMap<>();
+        private final RequestProcessor processor;
+        private ScheduledFuture<?> cleanupTask;
+
+        private RoomSession(SocketConnectionHandler server, String id) {
+            this.id = id;
+            this.processor = new RequestProcessor(server, id);
+        }
+
+        private synchronized void cancelCleanup() {
+            if (cleanupTask != null) {
+                cleanupTask.cancel(false);
+                cleanupTask = null;
+            }
+        }
+
+        private synchronized void scheduleCleanup() {
+            cancelCleanup();
+            cleanupTask = roomCleanup.schedule(() -> {
+                if (connections.isEmpty() && rooms.remove(id, this)) {
+                    System.out.println("Expired idle room " + id + ".");
+                }
+            }, ROOM_IDLE_TTL.toMinutes(), TimeUnit.MINUTES);
+        }
     }
 }

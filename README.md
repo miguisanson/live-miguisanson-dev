@@ -9,7 +9,6 @@ Miguel Joaquin A. Sanson's personal technology hub, now transitioning from a Hug
 - Tailwind CSS
 - Markdown content for blog posts and project writeups
 - Typed data files for projects, games, lab demos, profile, and resume-style content
-- Static prototype bundles under `public/prototypes`
 
 ## Quick Start
 
@@ -50,7 +49,10 @@ npm run dev:all
 
 The first lobby launch downloads a private Maven runtime into `.runtime/maven/`, builds the local source in `games/here-to-slay/`, and caches the JAR in `.runtime/games/here-to-slay/`. Keep the terminal open while you play. The portfolio runs at `http://localhost:3000/` and the private lobby runs at `http://localhost:5000/`.
 
-Create and verify an account from the portfolio header, then use the Here to Slay project card. The protected launch route issues a short-lived signed ticket and opens the lobby. The lobby verifies that ticket before accepting the WebSocket connection.
+Create and verify an account from the portfolio header, then open Games. Here to Slay creates
+private rooms with expiring invite codes; its signed ticket binds the player to one room and the
+Java service isolates each room's state. DD Project runs inside the site as an authenticated HTML5
+game with account-isolated local browser saves.
 
 You can run `npm run dev:all` again if one service is already active. It leaves occupied ports alone and starts only the missing service.
 
@@ -69,6 +71,17 @@ npm run start:all
 ## Private Here to Slay Lobby
 
 The Here to Slay multiplayer lobby is a separate Java service. Java 21 or later is required. A system Maven installation is optional because the launcher downloads a private copy when needed.
+
+Use **Create private room** to start an isolated tabletop, then share the displayed eight-character
+code. Other verified accounts can enter that code from the Here to Slay details page. Room records
+expire after eight hours; empty in-memory tabletop state is released after 30 minutes.
+
+## DD Project
+
+DD Project is a static GameMaker HTML5 build served by Next.js. `/play/dd-project` and its runtime
+document both enforce the same verified-account and admin game-access rules as Here to Slay. The
+browser save prefix is derived from the account, so accounts sharing a browser do not share local
+progress. These saves are local and do not follow the account to another browser or device.
 
 Start only the private lobby:
 
@@ -248,10 +261,11 @@ content/
   blog/                 # Markdown blog posts
   projects/             # Markdown project case studies
 games/
+  dd-project/            # GameMaker HTML5 packaging notes
   here-to-slay/          # Integrated Spring Boot game lobby source
 public/
   certificates/         # Resume/certificate assets
-  prototypes/           # Static demo builds for project showcases
+  game-assets/           # Browser game runtime assets (protected player shell is in Next.js)
 legacy/
   hugo-public/          # Preserved generated Hugo output
 REFERENCES/             # Source reference projects used for prototype migration
@@ -265,22 +279,18 @@ REFERENCES/             # Source reference projects used for prototype migration
 - `/blog` and `/blog/[slug]` - Markdown learning notes
 - `/projects` - redirects to `/resume`
 - `/projects/[slug]` - project case studies
-- `/games` and `/games/[slug]` - game showcase placeholders
+- `/games` and `/games/[slug]` - authenticated game catalog and game details
+- `/play/dd-project` - authenticated DD Project HTML5 player
 - `/lab` - frontend proof-of-concept demos
 - `/lab/ai-workout-planner` - mock AI workout planner
 - `/lab/ai-qa-helper` - mock AI QA helper
 - `/lab/dashboard-demo` - mock analytics dashboard
-- `/prototypes/consumer-iq/` - static P&G Consumer IQ prototype bundle
-- `/prototypes/usls-graduate-lifecycle/` - static USLS graduate lifecycle prototype bundle
 
 ## Migration Notes
 
 The previous Hugo/PaperMod source is still present for reference and should not be removed until the Next.js version is fully accepted. The old generated Hugo `public/` output was moved to `legacy/hugo-public/` because Next.js needs control of the root `public/` folder and would conflict with generated files like `public/index.html`.
 
-Reusable assets from the old Hugo `static/` folder were copied into the new Next.js `public/` folder. The project cards now link to static prototype bundles built from the richer reference apps:
-
-- `REFERENCES/PG-NEXT-MVP-main`
-- `REFERENCES/CAPSTONE-USLS-MVP/References/MVP-FIGMA`
+Reusable assets from the old Hugo `static/` folder were copied into the new Next.js `public/` folder.
 
 ## PaperMod Parity Notes
 
@@ -299,7 +309,6 @@ Known differences:
 
 - This is a Next.js recreation, so generated Hugo metadata, RSS, taxonomy archive internals, and PaperMod's exact Hugo partial output are not byte-for-byte identical.
 - The old Hugo footer was hidden through configuration; the Next.js recreation keeps that behavior and preserves the scroll-to-top control.
-- Prototype pages are served as static Next public assets and are intentionally separate from the PaperMod-styled shell.
 
 ## Future Upgrade Path
 

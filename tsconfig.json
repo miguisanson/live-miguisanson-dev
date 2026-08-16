@@ -40,7 +40,6 @@
     "legacy",
     "REFERENCES",
     "themes",
-    "static",
-    "public/prototypes"
+    "static"
   ]
 }

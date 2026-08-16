@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameLaunchButton } from "@/components/game/GameLaunchButton";
+import { HereToSlayRoomLauncher } from "@/components/game/HereToSlayRoomLauncher";
 import { PageShell } from "@/components/layout/PageShell";
 import { getGame } from "@/data/games";
 
 type GamePageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ room?: string; roomError?: string }>;
 };
 
 export async function generateMetadata({ params }: GamePageProps): Promise<Metadata> {
@@ -21,8 +23,9 @@ export async function generateMetadata({ params }: GamePageProps): Promise<Metad
   };
 }
 
-export default async function GamePage({ params }: GamePageProps) {
+export default async function GamePage({ params, searchParams }: GamePageProps) {
   const { slug } = await params;
+  const query = await searchParams;
   const game = getGame(slug);
   if (!game) {
     notFound();
@@ -40,8 +43,19 @@ export default async function GamePage({ params }: GamePageProps) {
             <span key={tech}>{tech}</span>
           ))}
         </div>
+        {game.launchMode === "rooms" ? (
+          <HereToSlayRoomLauncher initialRoom={query.room} initialError={query.roomError} />
+        ) : (
+          <div className="game-card-actions">
+            <GameLaunchButton
+              className="account-small-button account-primary-action"
+              launchPath={game.playUrl}
+            >
+              {game.playLabel}
+            </GameLaunchButton>
+          </div>
+        )}
         <div className="game-card-actions">
-          <GameLaunchButton className="account-small-button account-primary-action">{game.playLabel}</GameLaunchButton>
           <Link className="account-small-button" href="/games">
             Back to games
           </Link>

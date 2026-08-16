@@ -15,11 +15,21 @@ function getGamePlayerId(accountId: string) {
   return createHmac("sha256", getSecret()).update(accountId).digest().readUIntBE(0, 6);
 }
 
-export async function createGameTicket(user: { id: string; username: string }) {
+export function getGameInstanceId(accountId: string, gameSlug: string) {
+  return createHmac("sha256", getSecret())
+    .update(`${gameSlug}:${accountId}`)
+    .digest("base64url")
+    .slice(0, 24);
+}
+
+export async function createGameTicket(
+  user: { id: string; username: string },
+  roomCode: string,
+) {
   const secret = new TextEncoder().encode(getSecret());
   const playerId = getGamePlayerId(user.id);
 
-  return new SignJWT({ pid: playerId, username: user.username })
+  return new SignJWT({ pid: playerId, username: user.username, room: roomCode })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer("miguisanson.dev")
     .setAudience("here-to-slay")

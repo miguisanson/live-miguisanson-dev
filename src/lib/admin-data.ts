@@ -342,11 +342,11 @@ export async function getGameLaunchAccess(user: SessionUser) {
   }
 
   if (!settings.gameOpen) {
-    return { allowed: false, reason: "game_closed", message: "The game lobby is closed right now." };
+    return { allowed: false, reason: "game_closed", message: "Games are closed right now." };
   }
 
   if (settings.maintenanceMode) {
-    return { allowed: false, reason: "maintenance", message: "The game lobby is in maintenance mode." };
+    return { allowed: false, reason: "maintenance", message: "Games are in maintenance mode." };
   }
 
   if (settings.approvedOnly && !Boolean(access?.approved)) {

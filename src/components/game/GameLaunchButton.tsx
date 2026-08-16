@@ -6,33 +6,40 @@ import { authClient } from "@/lib/auth-client";
 type GameLaunchButtonProps = {
   className?: string;
   children?: ReactNode;
+  launchPath?: string;
+  loginMessage?: string;
+  verificationMessage?: string;
 };
 
-const launchPath = "/api/game/launch";
-
-function openAccountModal(mode: "login" | "verify", message: string) {
+function openAccountModal(mode: "login" | "verify", message: string, next: string) {
   window.dispatchEvent(
     new CustomEvent("miguisanson:open-account", {
       detail: {
         mode,
-        next: launchPath,
+        next,
         message,
       },
     }),
   );
 }
 
-export function GameLaunchButton({ className = "button", children = "Play Game" }: GameLaunchButtonProps) {
+export function GameLaunchButton({
+  className = "button",
+  children = "Play Game",
+  launchPath = "/api/game/launch",
+  loginMessage = "Log in or create an account to play.",
+  verificationMessage = "Verify your email address before playing.",
+}: GameLaunchButtonProps) {
   const { data: session, isPending } = authClient.useSession();
 
   function launch() {
     if (!session) {
-      openAccountModal("login", "Log in or create an account to join the tabletop.");
+      openAccountModal("login", loginMessage, launchPath);
       return;
     }
 
     if (!session.user.emailVerified) {
-      openAccountModal("verify", "Verify your email address before joining the tabletop.");
+      openAccountModal("verify", verificationMessage, launchPath);
       return;
     }
 

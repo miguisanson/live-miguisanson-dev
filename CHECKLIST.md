@@ -8,22 +8,22 @@ Legend: `[ ]` todo · `[~]` partial/exists-but-needs-work · `[x]` done
 ---
 
 ## 0. Foundation — design system (scalability first)
-- [~] CSS design tokens consolidated: spacing scale, type scale, radii, shadows, borders, motion
+- [x] CSS design tokens consolidated: spacing scale, type scale, radii, shadows, borders, motion
 - [ ] Document tokens (a short `design-system` note or comments block)
 - [ ] Consistent component class-naming convention
 - [x] Strict mono palette (black/white/gray), Geist font, no Tailwind
 - [x] z-index scale, `prefers-reduced-motion`, skip-link
 
 ## 1. Premade components (reusable library)
-- [~] Button (variants: primary/neutral/ghost/danger, sizes, loading, icon-only)
-- [~] Card (base + interactive/hover)
-- [~] Badge / tag / chip
-- [~] Avatar (image + initial fallback, sizes)
-- [~] Tabs / segmented nav (active state)
+- [x] Button (variants: primary/neutral/ghost/danger, sizes, loading) — `ui/Button`
+- [x] Card (base + interactive/hover) — `ui/Card` (Card/LinkCard/CardHeader)
+- [x] Badge / tag / chip — `ui/Badge`
+- [x] Avatar (image + initial fallback, sizes) — `ui/Avatar`
+- [~] Tabs / segmented nav (active state) — `AccountTabs` exists; extract to `ui/Tabs`
 - [ ] Form field set: input, textarea, select, checkbox/radio, label, hint, error
-- [~] Modal / dialog (focus trap, esc, backdrop)
-- [~] Dropdown / menu
-- [~] Empty state
+- [~] Modal / dialog (focus trap, esc, backdrop) — exists ad-hoc; extract to `ui/Modal`
+- [~] Dropdown / menu — exists ad-hoc; extract to `ui/Menu`
+- [x] Empty state — `ui/EmptyState`
 - [ ] Skeleton / loading placeholders
 - [ ] Toast / inline alert (notice / error / success)
 - [x] Page header (eyebrow / title / description) — `PageShell`
@@ -51,15 +51,16 @@ Legend: `[ ]` todo · `[~]` partial/exists-but-needs-work · `[x]` done
 - [~] Contrast ≥4.5:1, visible focus, aria labels, keyboard nav, semantic landmarks, alt text, form labels
 
 ## 5. Fix unfinished / information architecture
-- [ ] Home: replace bare greeting with a real dashboard / entry hub
-- [ ] Games: real index grid (sidebar links to a placeholder right now)
-- [ ] Blog vs Community: decide IA (merge / rename / keep) and implement
+- [x] Home: entry hub (greeting + section cards)
+- [x] Games: real index grid (status + tech chips + Play/Details)
+- [x] Games: authenticated DD Project HTML5 player with account-isolated local saves
+- [x] Games: private Here to Slay rooms with expiring invite codes and isolated server state
+- [x] Blog vs Community: Blog = articles (restored, separate); Community = people + feed
 - [ ] Resume: spacing + hierarchy polish
 - [ ] Admin: responsive + consistency
-- [~] AI-research: light consistency
 
 ## 6. Per-page revamp pass
-- [ ] Home · Resume · Games (+ detail) · Community · Profile `/u` · Account (+ subpages) · Admin · Blog · AI-research · Login
+- [ ] Home · Resume · Games (+ detail) · Community · Profile `/u` · Account (+ subpages) · Admin · Blog · Login
 
 ## 7. Polish pass (scheduled: next prompt)
 - [ ] Micro-interactions + hover/transition consistency (150–300ms, no layout shift)
@@ -75,3 +76,6 @@ Legend: `[ ]` todo · `[~]` partial/exists-but-needs-work · `[x]` done
 - [x] CHECKLIST.md created
 - [ ] Append a dated CHANGELOG entry after each change
 - [ ] Re-evaluate this checklist each session
+
+## 9. Cleanup
+- [x] Remove the retired AI Research and prototype routes, code, content, and assets

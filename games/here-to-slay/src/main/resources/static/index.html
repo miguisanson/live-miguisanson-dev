@@ -336,6 +336,23 @@
             color: rgba(255, 255, 255, 0.78);
         }
 
+        .roomIdentity {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        #roomCode {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            letter-spacing: 0.12em;
+        }
+
         #connectionStatus {
             margin: 0;
             padding: 10px 12px;
@@ -634,6 +651,11 @@
             </h1>
 
             <p class="lobbySubtitle">This private lobby connects automatically using your verified miguisanson.dev account.</p>
+            <div class="roomIdentity" aria-label="Private room code">
+                <span>Room</span>
+                <strong id="roomCode">Loading</strong>
+                <button type="button" id="copyRoomCode">Copy code</button>
+            </div>
             <p id="connectionStatus">Please wait while we set up.</p>
 
             <!-- player personalization -->

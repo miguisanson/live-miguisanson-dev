@@ -8,6 +8,23 @@ changes lands; keep bullets short and grouped.
 
 ## June 29, 2026 (Monday)
 
+### UI/UX revamp — foundation (Phase 1)
+- Added `CHANGELOG.md` + `CHECKLIST.md` and recorded a full state audit.
+- Added a scalable **design-token layer** to `globals.css` (spacing, type, radius, shadow,
+  motion) — all monochrome.
+- Built a reusable **component library** in `src/components/ui/`: `Button`/`ButtonLink`,
+  `Card`/`LinkCard`, `Badge`, `Avatar`, `EmptyState` (+ a dedicated `ui-*` CSS section).
+- Fixed the unfinished/placeholder pages: **Home** is now an entry hub (greeting + section
+  cards), **Games** is a real card grid (status + tech chips + Play/Details), and **Blog** is
+  restored as the article index (kept separate from Community per the IA decision). Added a Blog
+  nav icon.
+- Verified mobile at 375px (no horizontal overflow; grids collapse to one column).
+- Removed the **AI Research**, **P&G Consumer IQ Prototype**, and **USLS Graduate Lifecycle**
+  cards from the resume (data in `src/data/projects.ts`).
+- Fully removed the retired `/ai-research` and `/prototypes/*` routes, their dedicated
+  components/data/helper/CSS, project writeups, previews, and duplicate static/legacy assets.
+- Added `PLAN.md` (milestone tracker mirroring CHECKLIST + CHANGELOG).
+
 ### Platform foundation
 - Removed Tailwind entirely; the site uses hand-written CSS in `globals.css` with a strict
   black/white/gray palette and the **Geist** font (`next/font`).
@@ -29,7 +46,7 @@ changes lands; keep bullets short and grouped.
 
 ### Profiles & community
 - Public profiles at `/u/[username]`: display name, status, favorite quote, bio, favorite
-  games, computed **badges** (Admin, Verified, Early member, Here to Slay player, Writer,
+  games, computed **badges** (Admin, Verified, Early member, Game player, Writer,
   Profile pro), member-since, recent game activity, recent posts.
 - **Avatar + banner uploads** (`POST /api/profile/media`, served via `/media/[...path]` with a
   path-traversal guard); per-profile **accent color + background pattern** (scoped to the
@@ -43,6 +60,12 @@ changes lands; keep bullets short and grouped.
 
 ### Games
 - Here to Slay launch flow (HMAC-derived player id + short-lived signed ticket).
+- Added private **Here to Slay rooms**: creating a room generates an expiring share code, room
+  membership is signed into the launch ticket, and the Java service isolates connections,
+  players, tabletop state, broadcasts, and reconnections per room.
+- Added the GameMaker HTML5 build of **DD Project** with a responsive authenticated player,
+  fullscreen/restart controls, and account-derived browser save namespaces so local progress is
+  not shared between accounts on the same browser.
 - Game activity is now labeled by name ("Here to Slay") instead of the raw URL, and the launch
   records the game name for future scalability.
 

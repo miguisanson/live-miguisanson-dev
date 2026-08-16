@@ -15,6 +15,7 @@ public class GameTicketVerifier {
             "local-development-game-ticket-secret-change-before-deployment";
     private static final String EXPECTED_ISSUER = "miguisanson.dev";
     private static final String EXPECTED_AUDIENCE = "here-to-slay";
+    private static final String ROOM_PATTERN = "[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final boolean required;
@@ -53,6 +54,7 @@ public class GameTicketVerifier {
             long playerId = payload.path("pid").asLong(0);
             long expiration = payload.path("exp").asLong(0);
             String username = payload.path("username").asText("");
+            String roomId = payload.path("room").asText("");
             String issuer = payload.path("iss").asText("");
             String subject = payload.path("sub").asText("");
 
@@ -65,11 +67,11 @@ public class GameTicketVerifier {
             if (playerId <= 0 || !Long.toString(playerId).equals(requestedPlayerId)) {
                 throw new IllegalArgumentException("The account game ticket player does not match the connection.");
             }
-            if (subject.isBlank() || username.isBlank()) {
+            if (subject.isBlank() || username.isBlank() || !roomId.matches(ROOM_PATTERN)) {
                 throw new IllegalArgumentException("The account game ticket identity is incomplete.");
             }
 
-            return new TicketIdentity(subject, playerId, username);
+            return new TicketIdentity(subject, playerId, username, roomId);
         } catch (IllegalArgumentException exception) {
             throw exception;
         } catch (Exception exception) {
@@ -117,6 +119,6 @@ public class GameTicketVerifier {
         return System.getProperty(propertyName, fallback);
     }
 
-    public record TicketIdentity(String accountId, long playerId, String username) {
+    public record TicketIdentity(String accountId, long playerId, String username, String roomId) {
     }
 }

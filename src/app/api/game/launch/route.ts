@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getGameLaunchAccess, recordAuditEvent } from "@/lib/admin-data";
+import { createGameRoom, findActiveGameRoom, isRoomCode, normalizeRoomCode } from "@/lib/game-rooms";
 import { createGameTicket } from "@/lib/game-tickets";
 
 export const runtime = "nodejs";
@@ -22,12 +23,12 @@ function getSiteUrl() {
   return url;
 }
 
-function accountRedirect(account: string, message?: string) {
+function accountRedirect(account: string, message?: string, next = "/api/game/launch") {
   const url = getSiteUrl();
   url.pathname = "/login";
   url.search = "";
   url.searchParams.set("account", account);
-  url.searchParams.set("next", "/api/game/launch");
+  url.searchParams.set("next", next);
   if (message) {
     url.searchParams.set("message", message);
   }
@@ -40,6 +41,17 @@ function accountPageRedirect(message?: string) {
   url.search = "";
   if (message) {
     url.searchParams.set("message", message);
+  }
+  return NextResponse.redirect(url);
+}
+
+function gamePageRedirect(message: string, room?: string) {
+  const url = getSiteUrl();
+  url.pathname = "/games/here-to-slay-online-tabletop";
+  url.search = "";
+  url.searchParams.set("roomError", message);
+  if (room) {
+    url.searchParams.set("room", room);
   }
   return NextResponse.redirect(url);
 }
@@ -60,6 +72,7 @@ function getGameUrl() {
 }
 
 export async function GET(request: NextRequest) {
+  const launchPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
   const session = await auth.api.getSession({ headers: request.headers });
 
   if (!session) {
@@ -68,7 +81,7 @@ export async function GET(request: NextRequest) {
       metadata: { success: false, reason: "not_authenticated" },
       request,
     });
-    return accountRedirect("login", "Log in or create an account to join the tabletop.");
+    return accountRedirect("login", "Log in or create an account to join the tabletop.", launchPath);
   }
 
   if (!session.user.emailVerified) {
@@ -80,7 +93,7 @@ export async function GET(request: NextRequest) {
       metadata: { success: false, reason: "email_not_verified" },
       request,
     });
-    return accountRedirect("verify", "Verify your email address before joining the tabletop.");
+    return accountRedirect("verify", "Verify your email address before joining the tabletop.", launchPath);
   }
 
   const user = session.user as typeof session.user & {
@@ -101,15 +114,43 @@ export async function GET(request: NextRequest) {
   }
 
   const username = user.displayUsername ?? user.username ?? user.name;
-  const ticket = await createGameTicket({ id: user.id, username });
+  const rawRoom = request.nextUrl.searchParams.get("room");
+  const requestedRoom = normalizeRoomCode(rawRoom);
+  if (rawRoom !== null && !isRoomCode(requestedRoom)) {
+    return gamePageRedirect("Enter a valid 8-character room code.", requestedRoom);
+  }
+
+  const room = requestedRoom
+    ? await findActiveGameRoom(requestedRoom)
+    : await createGameRoom(user.id);
+  if (!room) {
+    await recordAuditEvent({
+      eventType: "game.launch",
+      actor: user,
+      targetUserId: user.id,
+      targetEmail: user.email,
+      metadata: { success: false, reason: "room_not_found", room: requestedRoom, game: "Here to Slay" },
+      request,
+    });
+    return gamePageRedirect("That room does not exist or has expired.", requestedRoom);
+  }
+
+  const ticket = await createGameTicket({ id: user.id, username }, room.code);
   const gameUrl = getGameUrl();
-  gameUrl.hash = `ticket=${encodeURIComponent(ticket)}`;
+  const hash = new URLSearchParams({ ticket, room: room.code });
+  gameUrl.hash = hash.toString();
   await recordAuditEvent({
     eventType: "game.launch",
     actor: user,
     targetUserId: user.id,
     targetEmail: user.email,
-    metadata: { success: true, destination: gameUrl.origin, game: "Here to Slay" },
+    metadata: {
+      success: true,
+      destination: gameUrl.origin,
+      game: "Here to Slay",
+      room: room.code,
+      roomAction: requestedRoom ? "join" : "create",
+    },
     request,
   });
 

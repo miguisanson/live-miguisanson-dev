@@ -40,6 +40,7 @@ class GameTicketVerifierTest {
         assertEquals("account-123", identity.accountId());
         assertEquals(480001L, identity.playerId());
         assertEquals("miguel", identity.username());
+        assertEquals("ABCD2345", identity.roomId());
     }
 
     @Test
@@ -73,7 +74,21 @@ class GameTicketVerifierTest {
         );
     }
 
+    @Test
+    void rejectsTicketWithoutAValidRoom() throws Exception {
+        String token = ticket(480001L, Instant.now().plusSeconds(60).getEpochSecond(), "INVALID!");
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new GameTicketVerifier().verify(token, "480001")
+        );
+    }
+
     private String ticket(long playerId, long expiration) throws Exception {
+        return ticket(playerId, expiration, "ABCD2345");
+    }
+
+    private String ticket(long playerId, long expiration, String room) throws Exception {
         String header = encode(OBJECT_MAPPER.writeValueAsBytes(Map.of("alg", "HS256", "typ", "JWT")));
         String payload = encode(OBJECT_MAPPER.writeValueAsBytes(Map.of(
                 "iss", "miguisanson.dev",
@@ -81,6 +96,7 @@ class GameTicketVerifierTest {
                 "sub", "account-123",
                 "pid", playerId,
                 "username", "miguel",
+                "room", room,
                 "exp", expiration
         )));
         String unsigned = header + "." + payload;
