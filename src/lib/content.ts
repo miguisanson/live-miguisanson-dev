@@ -119,6 +119,18 @@ function inlineMarkdown(value: string) {
   return escapeHtml(value).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 }
 
+/**
+ * Renders a single line of inline markdown — `code` and **bold** only.
+ *
+ * Escaping runs first, so the tags this adds are the only markup that can reach
+ * the DOM. Used for changelog and docs copy, which is authored in the repo.
+ */
+export function inlineMarkdownToHtml(value: string) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")

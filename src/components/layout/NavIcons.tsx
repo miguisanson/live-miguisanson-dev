@@ -118,3 +118,33 @@ export function BlogIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function LocationIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </Icon>
+  );
+}
+
+export function ChangelogIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 8v4l3 2" />
+      <path d="M3.05 11a9 9 0 1 1 .5 4" />
+      <path d="M3 21v-5h5" />
+    </Icon>
+  );
+}
+
+export function DocsIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </Icon>
+  );
+}

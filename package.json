@@ -1,7 +1,10 @@
 {
   "name": "miguisanson-dev",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:all": "node scripts/dev-all.mjs",
@@ -27,8 +30,8 @@
     "better-auth": "^1.6.13",
     "jose": "^6.2.3",
     "kysely": "0.28.17",
-    "next": "16.2.6",
-    "nodemailer": "^8.0.10",
+    "next": "^16.3.3",
+    "nodemailer": "^9.0.5",
     "pg": "^8.21.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
@@ -37,7 +40,7 @@
   },
   "devDependencies": {
     "@types/node": "24.12.1",
-    "@types/nodemailer": "^8.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

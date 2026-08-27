@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { LocationIcon } from "@/components/layout/NavIcons";
 import { CertificateModal } from "@/components/sections/CertificateModal";
 import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { SocialIcons } from "@/components/sections/SocialIcons";
@@ -11,9 +12,9 @@ export const metadata = {
 
 const skills = [
   { name: "Python", icon: "https://cdn.simpleicons.org/python" },
-  { name: "SQL", icon: "/sql_logo.png" },
+  { name: "SQL", icon: "/sql_logo.webp" },
   { name: "HTML", icon: "https://cdn.simpleicons.org/html5" },
-  { name: "CSS", icon: "/css_logo.png" },
+  { name: "CSS", icon: "/css_logo.webp" },
   { name: "JavaScript", icon: "https://cdn.simpleicons.org/javascript" },
   { name: "React.js", icon: "https://cdn.simpleicons.org/react" },
   { name: "GitHub", icon: "https://cdn.simpleicons.org/github" },
@@ -55,9 +56,12 @@ export default function ResumePage() {
           <div className="profile_inner">
             <Image src="/miguel.jpg" alt={profile.name} width={200} height={200} priority draggable={false} />
             <h1>{profile.name}</h1>
-            <span>
-              {"\uD83D\uDCCD"} Mandaluyong City, Philippines | Bachelor of Science in Information Technology
-              <br />@ De La Salle University - Manila
+            <span className="profile-meta">
+              <span className="profile-meta-line">
+                <LocationIcon size={15} />
+                {profile.location}
+              </span>
+              <span className="profile-meta-line">{profile.educationLine}</span>
             </span>
             <SocialIcons />
             <div className="buttons">
@@ -73,8 +77,8 @@ export default function ResumePage() {
       </article>
 
       <div className="post-content">
-        <section id="about" style={{ paddingTop: 10, marginBottom: 20 }}>
-          <h2 style={{ fontSize: "2rem", marginBottom: 20 }}>About Me</h2>
+        <section id="about" className="resume-section">
+          <h2 className="resume-section-title">About Me</h2>
           <div className="about-container">
             <p className="about-lede">
               I am a BS Information Technology student at De La Salle University with hands-on experience in web development, Linux-based hosting, database-backed applications, and practical hardware repair. I build projects from concept to production with a focus on reliable deployment, responsive UI, and maintainable systems.
@@ -124,10 +128,10 @@ export default function ResumePage() {
           </div>
         </section>
 
-        <hr style={{ border: 0, borderTop: "1px solid var(--tertiary)", margin: "0 0 20px 0" }} />
+        <hr className="resume-rule" />
 
-        <section id="experience" style={{ paddingTop: 10, marginBottom: 20 }}>
-          <h2 style={{ fontSize: "2rem", marginBottom: 20 }}>Relevant Experience</h2>
+        <section id="experience" className="resume-section">
+          <h2 className="resume-section-title">Relevant Experience</h2>
           <div className="timeline">
             <div className="timeline-item">
               <span className="timeline-company">P&amp;G Next Leadership Camp</span>
@@ -148,10 +152,10 @@ export default function ResumePage() {
           </div>
         </section>
 
-        <hr style={{ border: 0, borderTop: "1px solid var(--tertiary)", margin: "0 0 20px 0" }} />
+        <hr className="resume-rule" />
 
-        <section id="projects" style={{ paddingTop: 10, marginBottom: 20 }}>
-          <h2 style={{ fontSize: "2rem", marginBottom: 20 }}>My Projects</h2>
+        <section id="projects" className="resume-section">
+          <h2 className="resume-section-title">My Projects</h2>
           <div className="project-grid">
             {projects.map((project) => (
               <article className="project-card" key={project.slug}>
@@ -178,10 +182,10 @@ export default function ResumePage() {
           </div>
         </section>
 
-        <hr style={{ border: 0, borderTop: "1px solid var(--tertiary)", margin: "0 0 20px 0" }} />
+        <hr className="resume-rule" />
 
-        <section id="certifications" style={{ paddingTop: 10, marginBottom: 20 }}>
-          <h2 style={{ fontSize: "2rem", marginBottom: 20 }}>Certifications</h2>
+        <section id="certifications" className="resume-section">
+          <h2 className="resume-section-title">Certifications</h2>
           <div className="cert-grid">
             {certifications.map((certification) => (
               <article className="cert-card" key={certification.title}>

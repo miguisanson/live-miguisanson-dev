@@ -1,12 +1,30 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Archivo, Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { getSiteBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
+// Three type roles, all self-hosted by next/font so there is no external request
+// and no font host to allow through the CSP.
 const sans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Display face: a tight industrial grotesque that gives headings a voice of their
+// own instead of rendering them as larger body text.
+const display = Archivo({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+// Used for metadata, counts, timestamps, tech chips, and code.
+const mono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -26,7 +44,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" dir="auto" data-theme="auto" className={sans.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      dir="auto"
+      data-theme="auto"
+      className={`${sans.variable} ${display.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="list" id="top">
         <script
           dangerouslySetInnerHTML={{

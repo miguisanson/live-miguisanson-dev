@@ -21,7 +21,7 @@ export const projects: Project[] = [
       "A Linux-based home server environment for local hosting, database-backed apps, Cloudflare Tunnel testing, monitoring, and deployment practice.",
     status: "Case Study",
     tech: ["Linux", "Nginx", "MySQL", "Cloudflare Tunnel", "Monitoring"],
-    image: "/homebrew_hosting.png",
+    image: "/homebrew_hosting.webp",
     liveLabel: "View Page",
     featured: true,
   },
@@ -32,7 +32,7 @@ export const projects: Project[] = [
       "Practical diagnostics, component replacement, and customer-facing hardware repair work for consoles and older PC hardware.",
     status: "External",
     tech: ["Diagnostics", "Repair", "Troubleshooting", "Customer support"],
-    image: "/hardware_repair.png",
+    image: "/hardware_repair.webp",
     liveUrl: "https://www.carousell.ph/u/sanmig02/",
   },
   {
