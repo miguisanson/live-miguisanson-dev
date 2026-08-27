@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { formatReleaseDate, releases } from "@/data/changelog";
 import { inlineMarkdownToHtml } from "@/lib/content";
+import { requireProjectPageAccess } from "@/lib/project-pages";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/changelog" },
 };
 
-export default function ChangelogPage() {
+export default async function ChangelogPage() {
+  await requireProjectPageAccess();
+
   return (
     <PageShell
       eyebrow="Changelog"

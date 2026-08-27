@@ -58,6 +58,30 @@ export const releases: Release[] = [
         ],
       },
       {
+        area: "Access control",
+        items: [
+          "**`/changelog` and `/docs` are now admin-only**, controlled by `projectPagesArePublic` in `src/lib/site-config.ts`. Both return **404** rather than 401, so their existence is not disclosed, and the *Project* group disappears from the sidebar. The gate runs in the page itself — hiding the links alone would have been cosmetic.",
+          "Removed the *Known gaps* section from `/docs`, which enumerated exactly which security work was outstanding. That list was the real risk, not the page itself.",
+          "`sitemap.xml` only lists the project pages when they are actually public.",
+          "`admin:bootstrap` now accepts `ADMIN_PASSWORD` so a memorable password can be set from `.env.local` instead of the generated one. Not hardcoded — this repository is public.",
+        ],
+      },
+      {
+        area: "Fixes",
+        items: [
+          "**Fixed `admin:bootstrap`, which could not create an account at all.** Every insert into `account` omitted the NOT NULL `issuer` column Better Auth requires (`local:credential`), so the script failed on any fresh install.",
+          "Page headers no longer print the page name twice. `PageShell` drops an eyebrow that merely repeats the title, and the redundant props were removed from `/blog`, `/community` and `/games`.",
+        ],
+      },
+      {
+        area: "Content",
+        items: [
+          "**Removed the Here to Slay card from the resume.** It is a game, not a portfolio case study, and it appeared identically on both pages.",
+          "**Added preview images to the game cards.** Here to Slay uses its title art; DD Project uses a cutscene panel extracted from the game's own texture atlas, rendered with `image-rendering: pixelated` so the pixel grid stays crisp.",
+          "Replaced the `as const` game objects with a proper `Game` type, so optional fields like `image` and `pixelArt` typecheck across the whole list.",
+        ],
+      },
+      {
         area: "Pages",
         items: [
           "Added **/changelog**, rendered from a typed source so the release history is visible on the site rather than only in the repository.",

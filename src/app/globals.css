@@ -4685,3 +4685,27 @@ select:focus {
     height: 16px;
     object-fit: contain;
 }
+
+/* ---------- 14. Game card media ---------- */
+
+.game-card-media {
+    position: relative;
+    margin: calc(var(--space-6) * -1) calc(var(--space-6) * -1) 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow: hidden;
+    background: var(--surface-muted);
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid var(--line);
+}
+
+.game-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Pixel art must not be smoothed when the browser scales it up. */
+.game-card-media.is-pixel-art img {
+    image-rendering: pixelated;
+}

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getContentItems } from "@/lib/content";
 import { listPublicUsernames } from "@/lib/profile-data";
 import { getSiteBaseUrl } from "@/lib/site-url";
+import { projectPagesArePublic } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteBaseUrl();
   const now = new Date();
 
-  const staticRoutes: MetadataRoute.Sitemap = ["", "/resume", "/games", "/community", "/blog", "/changelog", "/docs"].map((path) => ({
+  // /changelog and /docs are only listed when they are actually public — there is
+  // no point advertising URLs that 404 for everyone but an admin.
+  const projectRoutes = projectPagesArePublic ? ["/changelog", "/docs"] : [];
+
+  const staticRoutes: MetadataRoute.Sitemap = ["", "/resume", "/games", "/community", "/blog", ...projectRoutes].map((path) => ({
     url: `${base}${path}`,
     lastModified: now,
     changeFrequency: "weekly",

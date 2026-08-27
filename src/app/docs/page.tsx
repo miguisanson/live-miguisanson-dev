@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
+import { requireProjectPageAccess } from "@/lib/project-pages";
 
 export const metadata: Metadata = {
   title: "Documentation",
@@ -19,7 +20,9 @@ const sections = [
   { id: "deployment", label: "Deployment" },
 ];
 
-export default function DocsPage() {
+export default async function DocsPage() {
+  await requireProjectPageAccess();
+
   return (
     <PageShell
       eyebrow="Documentation"
@@ -238,12 +241,17 @@ export default function DocsPage() {
               <li><strong>Authenticated pages send <code>no-store</code></strong>, so no cache holds them.</li>
             </ul>
           </div>
+          {/*
+            Do not enumerate unpatched weaknesses on this page. If
+            projectPagesArePublic is ever flipped to true, a list of exactly where
+            the site is soft becomes a checklist for whoever finds it. Outstanding
+            security work is tracked in ROADMAP.md, in the repository.
+          */}
           <div className="doc-callout">
-            <strong>Known gaps</strong>
+            <strong>Ongoing work</strong>
             <p>
-              Uploads are still trusted by their browser-reported type and are not re-encoded, there
-              is no per-account upload quota, and Turnstile is wired but not yet switched on. These
-              are tracked and not yet done.
+              Hardening is continuous. Outstanding items are tracked in the repository roadmap
+              rather than listed here.
             </p>
           </div>
         </section>

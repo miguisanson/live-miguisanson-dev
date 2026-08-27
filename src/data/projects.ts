@@ -1,5 +1,3 @@
-import { hereToSlayGame } from "@/data/games";
-
 export type Project = {
   slug: string;
   title: string;
@@ -35,19 +33,9 @@ export const projects: Project[] = [
     image: "/hardware_repair.webp",
     liveUrl: "https://www.carousell.ph/u/sanmig02/",
   },
-  {
-    slug: "here-to-slay-online-tabletop",
-    title: hereToSlayGame.title,
-    description:
-      "Play Here to Slay online with friends using a browser-based multiplayer virtual tabletop.",
-    status: "Live Demo",
-    tech: ["Java 21", "Spring Boot", "WebSockets", "Docker", "JavaScript"],
-    image: "/here_to_slay_preview.webp",
-    liveUrl: hereToSlayGame.playUrl,
-    liveLabel: "Play Game",
-    featured: true,
-  },
 ];
+// Here to Slay lives on the Games page, not here. It is a game, not a portfolio
+// case study, and listing it in both places duplicated the same card.
 
 export function getProject(slug: string) {
   return projects.find((project) => project.slug === slug);

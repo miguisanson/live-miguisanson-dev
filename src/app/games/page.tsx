@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { GameLaunchButton } from "@/components/game/GameLaunchButton";
 import { PageShell } from "@/components/layout/PageShell";
 import { Badge } from "@/components/ui/Badge";
@@ -15,7 +16,6 @@ export const metadata: Metadata = {
 export default function GamesPage() {
   return (
     <PageShell
-      eyebrow="Games"
       title="Games"
       description="Browser games and tabletop experiments. Launching requires a verified account."
     >
@@ -23,6 +23,17 @@ export default function GamesPage() {
         <div className="card-grid">
           {games.map((game) => (
             <Card key={game.slug} className="game-card-v2">
+              {game.image ? (
+                <div className={`game-card-media${game.pixelArt ? " is-pixel-art" : ""}`}>
+                  <Image
+                    src={game.image}
+                    alt={`${game.title} preview`}
+                    width={640}
+                    height={360}
+                    sizes="(max-width: 720px) 100vw, 480px"
+                  />
+                </div>
+              ) : null}
               <div className="row-between">
                 <h2 className="ui-card-title">{game.title}</h2>
                 <Badge>{game.status}</Badge>

@@ -11,6 +11,7 @@ import {
   HomeIcon,
   ResumeIcon,
 } from "./NavIcons";
+import { projectPagesArePublic } from "@/lib/site-config";
 
 type NavItem = {
   href: string;
@@ -46,10 +47,14 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
 
   // Project meta lives in its own group so it reads as reference material
   // rather than another destination alongside Games and Community.
-  const metaItems: NavItem[] = [
-    { href: "/changelog", label: "Changelog", icon: <ChangelogIcon />, match: "prefix" },
-    { href: "/docs", label: "Docs", icon: <DocsIcon />, match: "prefix" },
-  ];
+  // Visibility is controlled by projectPagesArePublic in src/lib/site-config.ts.
+  const metaItems: NavItem[] =
+    projectPagesArePublic || isAdmin
+      ? [
+          { href: "/changelog", label: "Changelog", icon: <ChangelogIcon />, match: "prefix" },
+          { href: "/docs", label: "Docs", icon: <DocsIcon />, match: "prefix" },
+        ]
+      : [];
 
   const isActive = (item: NavItem) =>
     item.match === "exact" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -97,25 +102,29 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
           })}
         </ul>
 
-        <p className="sidebar-group-label">Project</p>
-        <ul>
-          {metaItems.map((item) => {
-            const active = isActive(item);
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`sidebar-link${active ? " is-active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                  onClick={onClose}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {metaItems.length > 0 ? (
+          <>
+            <p className="sidebar-group-label">Project</p>
+            <ul>
+              {metaItems.map((item) => {
+                const active = isActive(item);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`sidebar-link${active ? " is-active" : ""}`}
+                      aria-current={active ? "page" : undefined}
+                      onClick={onClose}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
       </nav>
     </aside>
   );

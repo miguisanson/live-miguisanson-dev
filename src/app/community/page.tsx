@@ -57,7 +57,6 @@ export default async function CommunityPage({ searchParams }: CommunityPageProps
 
   return (
     <PageShell
-      eyebrow="Community"
       title="Community"
       description="Find members, visit profiles, and see what people are posting."
     >

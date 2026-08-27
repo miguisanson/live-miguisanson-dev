@@ -74,6 +74,20 @@ const username = (process.env.ADMIN_USERNAME || randomUsername()).trim();
 const shouldResetPassword = process.env.ADMIN_RESET_PASSWORD === "1";
 const now = new Date().toISOString();
 
+// better-auth stores a synthetic issuer on every account row; credential
+// accounts use `local:credential`. The column is NOT NULL, so omitting it made
+// every insert in this script fail.
+const CREDENTIAL_ISSUER = "local:credential";
+
+// ADMIN_PASSWORD lets you choose a password you can remember instead of the
+// generated one. Keep it in .env.local, which is gitignored — this repository is
+// public, so a password committed to source would be published to the world.
+const chosenPassword = (process.env.ADMIN_PASSWORD || "").trim();
+if (chosenPassword && chosenPassword.length < 12) {
+  console.error("[admin] ADMIN_PASSWORD must be at least 12 characters.");
+  process.exit(1);
+}
+
 await ensureAppSchema(repoRoot);
 
 const db = getDatabase();
@@ -85,7 +99,7 @@ try {
     `SELECT "id", "username" FROM "user" WHERE "email" = $1`,
     [email],
   );
-  const password = randomPassword();
+  const password = chosenPassword || randomPassword();
   const passwordHash = await hashPassword(password);
   let passwordWasSet = false;
 
@@ -106,14 +120,14 @@ try {
     await run(
       db,
       `
-        INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
-        VALUES (?, ?, 'credential', ?, ?, ?, ?)
+        INSERT INTO "account" ("id", "issuer", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+        VALUES (?, ?, ?, 'credential', ?, ?, ?, ?)
       `,
       `
-        INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
-        VALUES ($1, $2, 'credential', $3, $4, $5, $6)
+        INSERT INTO "account" ("id", "issuer", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+        VALUES ($1, $2, $3, 'credential', $4, $5, $6, $7)
       `,
-      [randomId(), userId, userId, passwordHash, now, now],
+      [randomId(), CREDENTIAL_ISSUER, userId, userId, passwordHash, now, now],
     );
     user = { id: userId, username };
     passwordWasSet = true;
@@ -136,14 +150,14 @@ try {
       await run(
         db,
         `
-          INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
-          VALUES (?, ?, 'credential', ?, ?, ?, ?)
+          INSERT INTO "account" ("id", "issuer", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+          VALUES (?, ?, ?, 'credential', ?, ?, ?, ?)
         `,
         `
-          INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
-          VALUES ($1, $2, 'credential', $3, $4, $5, $6)
+          INSERT INTO "account" ("id", "issuer", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, 'credential', $4, $5, $6, $7)
         `,
-        [randomId(), user.id, user.id, passwordHash, now, now],
+        [randomId(), CREDENTIAL_ISSUER, user.id, user.id, passwordHash, now, now],
       );
     }
     passwordWasSet = true;
@@ -197,9 +211,13 @@ try {
   console.log("[admin] Admin account is ready.");
   console.log(`[admin] Email: ${email}`);
   console.log(`[admin] Username: ${user.username ?? username}`);
-  if (passwordWasSet) {
+  if (passwordWasSet && chosenPassword) {
+    console.log("[admin] Password: the value of ADMIN_PASSWORD from your environment.");
+  } else if (passwordWasSet) {
     console.log(`[admin] Password: ${password}`);
     console.log("[admin] Store this password now. It is only printed this time.");
+    console.log("[admin] To choose your own instead, set ADMIN_PASSWORD in .env.local");
+    console.log("[admin] and run: ADMIN_RESET_PASSWORD=1 npm run admin:bootstrap");
   } else {
     console.log("[admin] Existing admin account found. Password was not changed.");
     console.log("[admin] To reset it, run: ADMIN_RESET_PASSWORD=1 npm run admin:bootstrap");

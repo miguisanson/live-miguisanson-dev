@@ -55,6 +55,40 @@ changelog and docs pages, and removal of the dead Hugo site.
 - Removed the `x-powered-by` header, which advertised the framework and version.
 - `/account` and `/admin` now send `no-store`.
 
+### Access control
+
+- **`/changelog` and `/docs` are now admin-only**, controlled by
+  `projectPagesArePublic` in `src/lib/site-config.ts`. Both routes return **404**
+  (not 401) to everyone else, so their existence is not disclosed, and the
+  "Project" group disappears from the sidebar. The gate runs in the page itself —
+  hiding the links alone would have been cosmetic.
+- Removed the "Known gaps" section from `/docs`, which enumerated exactly which
+  security work was outstanding. That list was the real risk, not the page.
+  Outstanding items live in `ROADMAP.md` instead.
+- `sitemap.xml` only lists the project pages when they are actually public.
+- `admin:bootstrap` now accepts `ADMIN_PASSWORD` so a memorable password can be
+  set from `.env.local` instead of using the generated one. **Not hardcoded** —
+  this repository is public.
+
+### Fixes
+
+- **Fixed `admin:bootstrap`, which could not create an account at all.** Every
+  insert into `account` omitted the NOT NULL `issuer` column that Better Auth
+  requires (`local:credential`), so the script failed on any fresh install.
+- Page headers no longer print the page name twice. `PageShell` drops an eyebrow
+  that merely repeats the title, and the redundant props were removed from
+  `/blog`, `/community` and `/games`.
+
+### Content
+
+- **Removed the Here to Slay card from the resume.** It is a game, not a
+  portfolio case study, and it appeared identically on both pages.
+- **Added preview images to the game cards.** Here to Slay uses its title art;
+  DD Project uses a cutscene panel extracted from the game's own texture atlas,
+  rendered with `image-rendering: pixelated` so the pixel grid stays crisp.
+- Replaced the `as const` game objects with a proper `Game` type, so optional
+  fields like `image` and `pixelArt` typecheck across the whole list.
+
 ### Pages
 
 - Added **/changelog**, rendered from `src/data/changelog.ts`.

@@ -12,7 +12,7 @@ export default function BlogPage() {
   const posts = getContentItems("blog");
 
   return (
-    <PageShell eyebrow="Blog" title="Blog" description="Notes, build logs, and learning posts.">
+    <PageShell title="Blog" description="Notes, build logs, and learning posts.">
       {posts.length > 0 ? (
         <div className="content-list">
           {posts.map((post) => (
