@@ -3754,9 +3754,11 @@ button#theme-toggle:focus-visible {
     margin: var(--space-10) auto var(--space-8);
 }
 
-/* PageShell renders the eyebrow as .post-meta, so scope the accent
-   treatment to the header rather than restyling every timestamp. */
+/* Page eyebrows come in two flavours: PageShell renders .post-meta, while
+   hand-built headers (login) use .eyebrow. Both are scoped to .page-header
+   so ordinary timestamps elsewhere keep the muted treatment. */
 .page-header .post-meta,
+.page-header .eyebrow,
 .home-kicker {
     font-family: var(--font-code);
     font-size: var(--text-xs);
@@ -3767,6 +3769,7 @@ button#theme-toggle:focus-visible {
 }
 
 .page-header .post-description,
+.page-header > p:not(.eyebrow):not(.post-meta),
 .home-lede {
     color: var(--muted);
     font-size: var(--text-lg);
@@ -4597,8 +4600,10 @@ select:focus {
     margin: 0 0 var(--space-8);
 }
 
-/* Location and education lines under the resume portrait. */
-.profile-meta {
+/* Location and education lines under the resume portrait.
+   Scoped to match `.profile .profile_inner > span`, which sets display:block
+   at higher specificity and would otherwise collapse these onto one line. */
+.profile .profile_inner > span.profile-meta {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
@@ -4620,7 +4625,8 @@ select:focus {
 
 /* Resume section links nested under the sidebar's Resume item. A rail
    carries the nesting so the labels can sit flush and stay readable. */
-.sidebar-subnav {
+/* Scoped to outrank `.sidebar-nav ul`, which zeroes margin and padding. */
+.sidebar-nav ul.sidebar-subnav {
     display: grid;
     gap: 1px;
     list-style: none;
