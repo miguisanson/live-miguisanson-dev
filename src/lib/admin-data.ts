@@ -14,7 +14,10 @@ export type AuditEventType =
   | "auth.password_reset_requested"
   | "account.update"
   | "account.delete"
-  | "game.launch";
+  | "game.launch"
+  | "blog.create"
+  | "blog.update"
+  | "blog.delete";
 
 type SessionUser = {
   id?: string;

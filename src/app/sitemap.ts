@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // no point advertising URLs that 404 for everyone but an admin.
   const projectRoutes = projectPagesArePublic ? ["/changelog", "/docs"] : [];
 
-  const staticRoutes: MetadataRoute.Sitemap = ["", "/resume", "/games", "/community", "/blog", ...projectRoutes].map((path) => ({
+  const staticRoutes: MetadataRoute.Sitemap = ["", "/resume", "/games", "/community", "/members", "/blog", ...projectRoutes].map((path) => ({
     url: `${base}${path}`,
     lastModified: now,
     changeFrequency: "weekly",

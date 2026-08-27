@@ -1,114 +1,83 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { PageShell } from "@/components/layout/PageShell";
+import { PostComposer } from "@/components/account/PostComposer";
+import { auth } from "@/lib/auth";
 import { markdownToHtml } from "@/lib/content";
-import { listRecentProfiles, searchProfiles, type ProfileCard } from "@/lib/profile-data";
 import { listRecentPublicPosts } from "@/lib/posts-data";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Community",
-  description: "Browse and search miguisanson.dev member profiles and recent posts.",
+  description: "Posts from miguisanson.dev members.",
   alternates: { canonical: "/community" },
 };
 
-type CommunityPageProps = {
-  searchParams?: Promise<{ q?: string | string[] }>;
-};
-
 function dateLabel(value: string) {
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
-}
-
-function MemberCard({ card }: { card: ProfileCard }) {
-  const initial = (card.displayName || card.username).slice(0, 1).toUpperCase();
-  return (
-    <Link href={`/u/${card.username}`} className="community-card">
-      <span className="public-avatar community-card-avatar" aria-hidden="true">
-        {card.avatarUrl ? <Image src={card.avatarUrl} alt="" width={48} height={48} /> : initial}
-      </span>
-      <span className="community-card-body">
-        <span className="community-card-name">
-          {card.displayName || card.username}
-          {card.isAdmin ? (
-            <span className="profile-badge">Admin</span>
-          ) : card.emailVerified ? (
-            <span className="profile-badge">Verified</span>
-          ) : null}
-        </span>
-        <span className="post-meta">@{card.username}</span>
-        {card.bio ? <span className="community-card-bio">{card.bio}</span> : null}
-      </span>
-    </Link>
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(
+    new Date(value),
   );
 }
 
-export default async function CommunityPage({ searchParams }: CommunityPageProps) {
-  const resolved = await searchParams;
-  const qValue = resolved?.q;
-  const q = (Array.isArray(qValue) ? qValue[0] : qValue ?? "").trim();
-
-  const [profiles, recentPosts] = await Promise.all([
-    q ? searchProfiles(q, 40) : listRecentProfiles(12),
-    listRecentPublicPosts(10),
-  ]);
+export default async function CommunityPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  const posts = await listRecentPublicPosts(50);
 
   return (
     <PageShell
       title="Community"
-      description="Find members, visit profiles, and see what people are posting."
+      description="What members are posting. Write something and it appears here."
     >
-      <form className="community-search" role="search" action="/community">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q}
-          placeholder="Search people by name or @username"
-          aria-label="Search members"
-        />
-        <button className="account-small-button account-primary-action" type="submit">
-          Search
-        </button>
-      </form>
+      {session ? (
+        <section className="community-composer" aria-label="Write a post">
+          <PostComposer />
+        </section>
+      ) : (
+        <section className="community-signin-prompt">
+          <p>
+            <Link href="/login?account=login&next=/community">Log in</Link> or{" "}
+            <Link href="/login?account=signup&next=/community">create an account</Link> to post.
+          </p>
+        </section>
+      )}
 
-      <section aria-label={q ? "Search results" : "Members"}>
+      <section aria-label="Recent posts">
         <div className="community-section-head">
-          <h2>{q ? `Results for “${q}”` : "Members"}</h2>
-          <span>{profiles.length}</span>
+          <h2>Recent posts</h2>
+          <span>{posts.length}</span>
         </div>
-        {profiles.length > 0 ? (
-          <div className="community-grid">
-            {profiles.map((card) => (
-              <MemberCard key={card.username} card={card} />
-            ))}
-          </div>
-        ) : (
-          <p className="account-empty">No members found.</p>
-        )}
-      </section>
 
-      {!q && recentPosts.length > 0 ? (
-        <section aria-label="Recent posts">
-          <div className="community-section-head">
-            <h2>Recent posts</h2>
-          </div>
+        {posts.length > 0 ? (
           <div className="post-list">
-            {recentPosts.map((post) => (
+            {posts.map((post) => (
               <article className="post-card" key={post.id}>
                 <div className="post-card-head">
-                  <Link href={`/u/${post.username}`} className="post-author">
-                    {post.displayName}
+                  <Link href={`/u/${post.username}`} className="post-author-link">
+                    <span className="public-avatar post-avatar" aria-hidden="true">
+                      {post.avatarUrl ? (
+                        <Image src={post.avatarUrl} alt="" width={32} height={32} />
+                      ) : (
+                        (post.displayName || post.username).slice(0, 1).toUpperCase()
+                      )}
+                    </span>
+                    <span className="post-author">{post.displayName}</span>
                   </Link>
                   <time dateTime={post.createdAt}>{dateLabel(post.createdAt)}</time>
                 </div>
-                <div className="post-card-body" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
+                <div
+                  className="post-card-body"
+                  dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }}
+                />
               </article>
             ))}
           </div>
-        </section>
-      ) : null}
+        ) : (
+          <p className="account-empty">No posts yet. Be the first.</p>
+        )}
+      </section>
     </PageShell>
   );
 }

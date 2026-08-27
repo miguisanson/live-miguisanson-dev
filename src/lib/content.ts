@@ -67,56 +67,208 @@ export function getContentItem(type: "blog" | "projects", slug: string) {
   return getContentItems(type).find((item) => item.slug === slug);
 }
 
+/**
+ * Renders the small markdown subset used by blog posts and member posts.
+ *
+ * Supported: `##` / `###` / `####` headings, `-` and `1.` lists, `>` quotes,
+ * `---` rules, fenced code blocks, and inline **bold**, `code` and [links](url).
+ *
+ * SAFETY: every path escapes HTML *before* any tag is added, so the only markup
+ * that can reach the DOM is what this function emits. Do not reorder that, and
+ * do not replace this with a renderer that passes raw HTML through.
+ */
 export function markdownToHtml(markdown: string) {
   const lines = markdown.split(/\r?\n/);
   const html: string[] = [];
-  let inList = false;
+  let listType: "ul" | "ol" | null = null;
+  let inQuote = false;
+  let codeLanguage: string | null = null;
+  let codeBuffer: string[] = [];
+  let inTable = false;
+  let paragraph: string[] = [];
 
   const closeList = () => {
-    if (inList) {
-      html.push("</ul>");
-      inList = false;
+    if (listType) {
+      html.push(`</${listType}>`);
+      listType = null;
     }
   };
 
+  const closeQuote = () => {
+    if (inQuote) {
+      html.push("</blockquote>");
+      inQuote = false;
+    }
+  };
+
+  const closeTable = () => {
+    if (inTable) {
+      html.push("</tbody></table></div>");
+      inTable = false;
+    }
+  };
+
+  // Markdown paragraphs are hard-wrapped across several source lines. Buffer
+  // them and emit one <p>, or every wrapped line becomes its own paragraph.
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      html.push(`<p>${inlineMarkdown(paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+  };
+
+  const openList = (type: "ul" | "ol") => {
+    if (listType !== type) {
+      closeList();
+      html.push(`<${type}>`);
+      listType = type;
+    }
+  };
+
+  const flushCode = () => {
+    const cls = codeLanguage ? ` class="lang-${escapeAttribute(codeLanguage)}"` : "";
+    html.push(`<pre${cls}><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`);
+    codeBuffer = [];
+    codeLanguage = null;
+  };
+
   for (const line of lines) {
+    // Inside a fence, take lines verbatim until the closing fence.
+    if (codeLanguage !== null) {
+      if (line.trim().startsWith("```")) {
+        flushCode();
+      } else {
+        codeBuffer.push(line);
+      }
+      continue;
+    }
+
     const trimmed = line.trim();
+
+    if (trimmed.startsWith("```")) {
+      flushParagraph();
+      closeList();
+      closeQuote();
+      codeLanguage = trimmed.slice(3).trim() || "text";
+      codeBuffer = [];
+      continue;
+    }
+
     if (!trimmed) {
+      flushParagraph();
       closeList();
+      closeQuote();
+      closeTable();
       continue;
     }
 
-    if (trimmed.startsWith("### ")) {
+    if (trimmed === "---" || trimmed === "***") {
+      flushParagraph();
       closeList();
-      html.push(`<h3>${inlineMarkdown(trimmed.slice(4))}</h3>`);
+      closeQuote();
+      html.push("<hr />");
       continue;
     }
 
-    if (trimmed.startsWith("## ")) {
+    const heading = /^(#{2,4})\s+(.*)$/.exec(trimmed);
+    if (heading) {
+      flushParagraph();
       closeList();
-      html.push(`<h2>${inlineMarkdown(trimmed.slice(3))}</h2>`);
+      closeQuote();
+      const level = heading[1].length;
+      html.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+
+    if (trimmed.startsWith("> ")) {
+      flushParagraph();
+      closeList();
+      if (!inQuote) {
+        html.push("<blockquote>");
+        inQuote = true;
+      }
+      html.push(`<p>${inlineMarkdown(trimmed.slice(2))}</p>`);
+      continue;
+    }
+
+    // Pipe tables: a header row, a |---|---| separator, then body rows.
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      flushParagraph();
+      closeList();
+      closeQuote();
+      const cells = (row: string) =>
+        row
+          .slice(1, -1)
+          .split("|")
+          .map((cell) => cell.trim());
+      const next = lines[lines.indexOf(line) + 1]?.trim() ?? "";
+      const isHeader = /^\|[\s:|-]+\|$/.test(next);
+      if (isHeader && !inTable) {
+        inTable = true;
+        html.push("<div class=\"post-table-wrap\"><table><thead><tr>");
+        for (const cell of cells(trimmed)) {
+          html.push(`<th>${inlineMarkdown(cell)}</th>`);
+        }
+        html.push("</tr></thead><tbody>");
+        continue;
+      }
+      if (/^\|[\s:|-]+\|$/.test(trimmed)) {
+        continue;
+      }
+      if (inTable) {
+        html.push("<tr>");
+        for (const cell of cells(trimmed)) {
+          html.push(`<td>${inlineMarkdown(cell)}</td>`);
+        }
+        html.push("</tr>");
+        continue;
+      }
+    }
+
+    const ordered = /^\d+\.\s+(.*)$/.exec(trimmed);
+    if (ordered) {
+      flushParagraph();
+      closeQuote();
+      openList("ol");
+      html.push(`<li>${inlineMarkdown(ordered[1])}</li>`);
       continue;
     }
 
     if (trimmed.startsWith("- ")) {
-      if (!inList) {
-        html.push("<ul>");
-        inList = true;
-      }
+      flushParagraph();
+      closeQuote();
+      openList("ul");
       html.push(`<li>${inlineMarkdown(trimmed.slice(2))}</li>`);
       continue;
     }
 
     closeList();
-    html.push(`<p>${inlineMarkdown(trimmed)}</p>`);
+    closeQuote();
+    paragraph.push(trimmed);
   }
 
+  if (codeLanguage !== null) {
+    flushCode();
+  }
+  flushParagraph();
   closeList();
+  closeQuote();
+  closeTable();
   return html.join("\n");
 }
 
 function inlineMarkdown(value: string) {
-  return escapeHtml(value).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
+    // Only http(s), mailto and site-relative targets — never javascript: URLs.
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+|\/[^\s)]*)\)/g,
+      '<a href="$2">$1</a>');
+}
+
+function escapeAttribute(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "");
 }
 
 /**

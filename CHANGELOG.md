@@ -14,6 +14,76 @@ into a single Pre-history entry at the bottom.
 
 ---
 
+## 2026-08-28
+
+Résumé refresh, blog rebuild with admin authoring, community restructure, and a
+fix for the DD Project game canvas.
+
+### Documentation
+
+- Added **`CONTEXT.md`** — a full project handover covering architecture, design
+  rules, information architecture, security posture, working conventions and the
+  decisions on record. `CLAUDE.md` imports it, so an agent or developer with no
+  prior knowledge of this project has everything that is not recoverable from the
+  code. This is the file to update when a convention changes.
+
+### Résumé
+
+- Rewrote `src/data/profile.ts` against the current one-page CV: the Seven Seven
+  Global Services internship, the Graduate Student Lifecycle capstone, grouped
+  technical skills, and certifications with dates.
+- Made `/resume` fully data-driven — experience, projects and certifications had
+  been hardcoded in the page and drifted from the data file.
+
+### Blog
+
+- Removed the two placeholder posts; kept **What I use a Linux home server for**
+  and rewrote it as a full article on Proxmox, tunnels vs port forwarding, and
+  what actually broke.
+- Added **Writing an iOS training manual: what teaching it taught me** — a
+  long-form post drawn from the 10-module training manual, including the
+  UserDefaults-is-not-encrypted, `map`-does-not-search and `unowned` corrections.
+- **Admin blog authoring**: new `blogPost` table, an editor at `/admin/blog`,
+  draft and published states, slug generation with collision checks, and
+  two-step delete. Drafts are previewable by admins at their real URL and 404
+  for everyone else.
+- The blog index merges repository markdown with database posts. A database post
+  supersedes a file with the same slug.
+
+### Markdown renderer
+
+- Extended it to support `####` headings, ordered lists, blockquotes, horizontal
+  rules, fenced code blocks, pipe tables, inline `code`, *italics* and links.
+  Links are restricted to `http(s)`, `mailto:` and site-relative targets, so a
+  `javascript:` URL cannot be smuggled in. Escaping still runs **before** any tag
+  is added.
+- **Fixed hard-wrapped paragraphs rendering as one `<p>` per source line.**
+  Paragraph lines are now buffered and joined.
+
+### Community
+
+- **Split people from posts.** `/members` is the member directory and search;
+  `/community` is the post feed, and the composer lives there.
+- **Removed the composer from profile pages.** A profile displays a member; it is
+  not an editor. Owners still see their drafts, with a link to where posts are
+  written.
+
+### Games
+
+- **Fixed the DD Project canvas being stretched to the full window at the wrong
+  aspect ratio.** The GameMaker runtime absolutely-positions its own canvas, but
+  the wrapper had no `position`, so it resolved against the viewport instead of
+  its container — rendering at 1.52 aspect against a native 1.11, and many times
+  more pixels than the game needs.
+- The game frame now takes focus on any click inside it, so keyboard input is
+  never silently dead.
+- Gave the game route its **own CSP**. The GameMaker runtime uses `eval` and
+  WebAssembly, which the site-wide policy forbids — enforcing it would have
+  broken the game in production.
+
+
+---
+
 ## 2026-08-27 — v0.7
 
 Day one of tracked development. Full visual revamp, a security baseline, public

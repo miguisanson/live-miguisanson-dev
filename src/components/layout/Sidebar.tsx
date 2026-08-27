@@ -6,6 +6,7 @@ import {
   ChangelogIcon,
   CloseIcon,
   CommunityIcon,
+  MembersIcon,
   DocsIcon,
   GamesIcon,
   HomeIcon,
@@ -39,6 +40,7 @@ export function Sidebar({ isAdmin, pathname, onClose }: SidebarProps) {
     { href: "/resume", label: "Resume", icon: <ResumeIcon />, match: "prefix" },
     { href: "/games", label: "Games", icon: <GamesIcon />, match: "prefix" },
     { href: "/community", label: "Community", icon: <CommunityIcon />, match: "prefix" },
+    { href: "/members", label: "Members", icon: <MembersIcon />, match: "prefix" },
     { href: "/blog", label: "Blog", icon: <BlogIcon />, match: "prefix" },
   ];
   if (isAdmin) {

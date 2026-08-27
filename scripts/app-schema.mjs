@@ -185,6 +185,43 @@ export async function ensureAppSchema(repoRoot) {
       `,
     );
 
+    // Long-form blog posts written from the admin dashboard. Separate from
+    // "post", which holds short member posts for the community feed — different
+    // authors, different lifecycle, different page.
+    await exec(
+      db,
+      `
+        CREATE TABLE IF NOT EXISTS "blogPost" (
+          "id" text not null primary key,
+          "slug" text not null unique,
+          "title" text not null,
+          "summary" text not null default '',
+          "body" text not null,
+          "tags" text not null default '',
+          "status" text not null default 'draft',
+          "authorId" text not null references "user" ("id") on delete cascade,
+          "publishedAt" text,
+          "createdAt" text not null,
+          "updatedAt" text not null
+        );
+      `,
+      `
+        CREATE TABLE IF NOT EXISTS "blogPost" (
+          "id" text not null primary key,
+          "slug" text not null unique,
+          "title" text not null,
+          "summary" text not null default '',
+          "body" text not null,
+          "tags" text not null default '',
+          "status" text not null default 'draft',
+          "authorId" text not null references "user" ("id") on delete cascade,
+          "publishedAt" timestamptz,
+          "createdAt" timestamptz not null,
+          "updatedAt" timestamptz not null
+        );
+      `,
+    );
+
     await exec(
       db,
       `

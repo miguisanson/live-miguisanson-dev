@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { PostComposer } from "@/components/account/PostComposer";
 import { PostList } from "@/components/account/PostList";
 import { auth } from "@/lib/auth";
 import { isAdminUser } from "@/lib/admin-data";
@@ -157,11 +156,21 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
         ) : null}
       </article>
 
+      {/* A profile displays a member; it is not an editor. Composing happens on
+          /community, which is the one place posts are written. Owners still see
+          their drafts here, with a link to where new posts are written. */}
       {isOwner ? (
         <section className="account-card">
-          <h2>Your posts</h2>
-          <PostComposer />
-          <p className="field-hint">Public posts show here and in the community feed. Drafts are only visible to you.</p>
+          <div className="account-card-heading">
+            <h2>Your posts</h2>
+            <Link className="ui-button ui-button--primary ui-button--sm" href="/community">
+              Write a post
+            </Link>
+          </div>
+          <p className="field-hint">
+            Posts are written on the community page. Public ones appear there and here; drafts are
+            only visible to you.
+          </p>
           <PostList posts={ownViews} />
         </section>
       ) : publicPosts.length > 0 ? (

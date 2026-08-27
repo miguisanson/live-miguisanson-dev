@@ -51,6 +51,24 @@ const securityHeaders = [
     : []),
 ];
 
+// The GameMaker HTML5 runtime uses eval() and WebAssembly (verified in
+// DD-Project.js). The site-wide policy above forbids both in production, so
+// enforcing it would break the game. Relax the policy for this one route rather
+// than weakening it everywhere — the document it serves is ours, and it embeds
+// no third-party script.
+const gameRuntimeCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "connect-src 'self' blob:",
+  "frame-ancestors 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Don't advertise the framework and version to attackers.
@@ -60,6 +78,18 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      {
+        // Must come after the site-wide rule so it overrides the CSP for this path.
+        source: "/api/games/dd-project/runtime",
+        headers: [
+          {
+            key: enforceContentSecurityPolicy
+              ? "Content-Security-Policy"
+              : "Content-Security-Policy-Report-Only",
+            value: gameRuntimeCsp,
+          },
+        ],
       },
       {
         source: "/game-assets/dd-project/:path*",

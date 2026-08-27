@@ -21,8 +21,27 @@ function runtimeHtml(instanceId: string) {
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #050505; }
     body { display: grid; place-items: center; }
-    #gm4html5_div_id { width: min(100vw, calc(100vh * 1.111111)); aspect-ratio: 10 / 9; }
-    canvas { display: block; width: 100%; height: 100%; margin: 0; image-rendering: pixelated; touch-action: none; }
+
+    /* The GameMaker runtime absolutely-positions its own canvas
+       (position:absolute; inset:50% -50% -50% 50%; transform:translate(-50%,-50%)).
+       Without position:relative here that resolves against the viewport, so the
+       canvas stretched to the full window at the wrong aspect ratio — distorting
+       the picture and rendering many times more pixels than the game needs. */
+    #gm4html5_div_id {
+      position: relative;
+      width: min(100vw, calc(100vh * 10 / 9));
+      height: min(100vh, calc(100vw * 9 / 10));
+    }
+
+    /* Size is left to the runtime; only presentation is set here. Overriding
+       width/height fought the runtime's own scaling. */
+    canvas {
+      display: block;
+      margin: 0;
+      image-rendering: pixelated;
+      touch-action: none;
+      outline: none;
+    }
   </style>
 </head>
 <body>
@@ -37,7 +56,19 @@ function runtimeHtml(instanceId: string) {
     g_GameMakerHTML5Dir = ${JSON.stringify(assetRoot)};
     window.addEventListener("load", function () {
       GameMaker_Init();
-      document.getElementById("canvas").focus();
+      var canvas = document.getElementById("canvas");
+      canvas.focus();
+
+      // Inside an iframe the game only receives keys once something in this
+      // document holds focus. A click anywhere in the frame — not just precisely
+      // on the canvas — hands focus back, so input is never silently dead.
+      function grabFocus() {
+        if (document.activeElement !== canvas) {
+          canvas.focus();
+        }
+      }
+      document.addEventListener("pointerdown", grabFocus);
+      window.addEventListener("focus", grabFocus);
     });
   </script>
 </body>
