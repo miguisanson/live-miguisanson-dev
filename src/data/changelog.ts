@@ -33,6 +33,15 @@ export const releases: Release[] = [
     summary: "Feed images, back links, and a pass over readability.",
     groups: [
       {
+        area: "Games — DD Project input",
+        items: [
+          "**Fixed the game freezing on the title screen with dead controls.** It was not frozen: GameMaker binds keyboard with `window.onkeydown` on the *iframe's* own window and clears both handlers on blur, so with focus in the parent document no key ever reached the game.",
+          "**Added a \"Click to play\" gate inside the game frame.** One click supplies the user gesture that lets audio start, moves focus into the iframe, and focuses the canvas. Verified the `AudioContext` goes from `suspended` to `running`.",
+          "The parent page now focuses the iframe on any click in the frame and after fullscreen, which previously stole focus back and killed input.",
+          "**Fixed the game rendering at a 480×432 postage stamp** — it now fills its container at exactly the native 1.111 aspect, pixel grid intact.",
+        ],
+      },
+      {
         area: "Community posts",
         items: [
           "**Removed the public/draft dropdown.** Member posts are always public; drafts were a concept borrowed from the blog that made no sense on a short feed.",

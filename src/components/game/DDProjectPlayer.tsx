@@ -1,14 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export function DDProjectPlayer() {
   const playerRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
   const [frameKey, setFrameKey] = useState(0);
+
+  // GameMaker listens for keys on the iframe's own window and drops those
+  // handlers whenever it blurs. Clicking the frame must therefore move focus
+  // into the iframe, not merely onto the element in this document.
+  const focusGame = useCallback(() => {
+    frameRef.current?.contentWindow?.focus();
+  }, []);
 
   async function enterFullscreen() {
     await playerRef.current?.requestFullscreen();
+    // Fullscreen moves focus to the container in this document, which blurs the
+    // iframe and kills keyboard input. Hand it straight back.
+    focusGame();
   }
 
   return (
@@ -30,9 +41,11 @@ export function DDProjectPlayer() {
           </Link>
         </div>
       </div>
-      <div className="game-player-frame" ref={playerRef}>
+      <div className="game-player-frame" ref={playerRef} onPointerDown={focusGame}>
         <iframe
           key={frameKey}
+          ref={frameRef}
+          onLoad={focusGame}
           src="/api/games/dd-project/runtime"
           title="DD Project"
           allow="autoplay; fullscreen; gamepad"
@@ -40,7 +53,10 @@ export function DDProjectPlayer() {
           sandbox="allow-scripts allow-same-origin allow-pointer-lock"
         />
       </div>
-      <p className="game-player-note">Use a keyboard for the best experience. Click the game once if it does not immediately receive input.</p>
+      <p className="game-player-note">
+        Click <strong>Play</strong> in the frame to start — that one click turns on sound and gives
+        the game keyboard control. Clicking away pauses input; click the game again to resume.
+      </p>
     </section>
   );
 }
