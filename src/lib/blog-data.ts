@@ -38,6 +38,8 @@ export type BlogEntry = {
   /** "file" entries live in the repository; "db" entries are editable in /admin. */
   source: "file" | "db";
   status: BlogStatus;
+  /** Optional companion document, only set on file-backed entries. */
+  pdf?: string;
 };
 
 function blogId() {
@@ -73,6 +75,7 @@ function fromFile(item: ContentItem): BlogEntry {
     date: item.date ?? "",
     source: "file",
     status: "published",
+    pdf: item.pdf,
   };
 }
 

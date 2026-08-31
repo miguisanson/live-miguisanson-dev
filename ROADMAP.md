@@ -9,7 +9,7 @@ unfinished placeholders in the same document that recorded them as completed.
 **Rule:** when something ships, move it to Done here *and* add a dated entry to
 [CHANGELOG.md](CHANGELOG.md). One line each. Do not keep a third tracker.
 
-Last reviewed: **2026-08-28**
+Last reviewed: **2026-08-31**
 
 ---
 
@@ -40,6 +40,8 @@ Last reviewed: **2026-08-28**
 - [x] Admin blog authoring with drafts (done 2026-08-28)
 - [x] Members split from the community feed (done 2026-08-28)
 - [x] Project handover in `CONTEXT.md` (done 2026-08-28)
+- [x] Image attachments on community posts, max 5 (done 2026-08-31)
+- [x] Back links on all detail pages (done 2026-08-31)
 
 ### Security
 - [x] Parameterized SQL throughout

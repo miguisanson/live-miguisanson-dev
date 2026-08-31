@@ -7,6 +7,8 @@ export type ContentItem = {
   date?: string;
   summary: string;
   tags: string[];
+  /** Optional companion document, served from /public. */
+  pdf?: string;
   body: string;
 };
 
@@ -57,6 +59,7 @@ export function getContentItems(type: "blog" | "projects") {
         date: data.date,
         summary: data.summary ?? "",
         tags: parseTags(data.tags),
+        pdf: data.pdf || undefined,
         body,
       } satisfies ContentItem;
     })

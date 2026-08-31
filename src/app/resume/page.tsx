@@ -73,12 +73,11 @@ export default function ResumePage() {
         <section id="about" className="resume-section">
           <h2 className="resume-section-title">About Me</h2>
           <div className="about-container">
+            {/* Kept to three short lines on purpose. The detail lives in
+                Experience and Projects below; this is the hook, not the summary. */}
             <p className="about-lede">
-              I am a BS Information Technology student at De La Salle University. My work spans native
-              iOS development in Swift and UIKit, full-stack web platforms, and self-hosted Linux
-              infrastructure &mdash; most recently a 504-hour internship at Seven Seven Global Services,
-              where I shipped a native iOS booking app and authored two technical training manuals. I
-              build projects end to end, from architecture through production deployment.
+              IT student at De La Salle University who builds things end to end &mdash; native iOS
+              apps, full-stack web platforms, and the Linux servers they run on.
             </p>
 
             <h3>What I work with</h3>

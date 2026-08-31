@@ -9,9 +9,28 @@ export type Post = {
   userId: string;
   body: string;
   visibility: PostVisibility;
+  /** Newline-joined media URLs as stored; use `postImages()` to read them. */
+  images: string;
   createdAt: string;
   updatedAt: string;
 };
+
+/** Splits the stored `images` column into a list of URLs. */
+export function postImages(post: { images?: string | null }) {
+  return (post.images ?? "")
+    .split("\n")
+    .map((url) => url.trim())
+    .filter(Boolean);
+}
+
+/** Joins a list of URLs for storage, enforcing the per-post cap. */
+export function serializePostImages(urls: string[], max: number) {
+  return urls
+    .map((url) => url.trim())
+    .filter((url) => url.startsWith("/media/posts/"))
+    .slice(0, max)
+    .join("\n");
+}
 
 export type FeedPost = Post & {
   username: string;
@@ -27,15 +46,15 @@ function normalizeVisibility(value: string): PostVisibility {
   return value === "draft" ? "draft" : "public";
 }
 
-export async function createPost(userId: string, body: string, visibility: string) {
+export async function createPost(userId: string, body: string, visibility: string, images = "") {
   const now = new Date().toISOString();
   const id = postId();
   await dbRun(
     {
-      sqlite: `INSERT INTO "post" ("id", "userId", "body", "visibility", "createdAt", "updatedAt") VALUES (?, ?, ?, ?, ?, ?)`,
-      postgres: `INSERT INTO "post" ("id", "userId", "body", "visibility", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6)`,
+      sqlite: `INSERT INTO "post" ("id", "userId", "body", "visibility", "images", "createdAt", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      postgres: `INSERT INTO "post" ("id", "userId", "body", "visibility", "images", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     },
-    [id, userId, body, normalizeVisibility(visibility), now, now],
+    [id, userId, body, normalizeVisibility(visibility), images, now, now],
   );
   return id;
 }
@@ -43,8 +62,8 @@ export async function createPost(userId: string, body: string, visibility: strin
 export async function getPost(id: string): Promise<Post | null> {
   return dbGet<Post>(
     {
-      sqlite: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "id" = ?`,
-      postgres: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "id" = $1`,
+      sqlite: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "id" = ?`,
+      postgres: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "id" = $1`,
     },
     [id],
   );
@@ -87,16 +106,16 @@ export async function getUserPosts(userId: string, options: { includeDrafts?: bo
   if (options.includeDrafts) {
     return dbAll<Post>(
       {
-        sqlite: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? ORDER BY "createdAt" DESC`,
-        postgres: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 ORDER BY "createdAt" DESC`,
+        sqlite: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? ORDER BY "createdAt" DESC`,
+        postgres: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 ORDER BY "createdAt" DESC`,
       },
       [userId],
     );
   }
   return dbAll<Post>(
     {
-      sqlite: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? AND "visibility" = 'public' ORDER BY "createdAt" DESC`,
-      postgres: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 AND "visibility" = 'public' ORDER BY "createdAt" DESC`,
+      sqlite: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? AND "visibility" = 'public' ORDER BY "createdAt" DESC`,
+      postgres: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 AND "visibility" = 'public' ORDER BY "createdAt" DESC`,
     },
     [userId],
   );
@@ -105,8 +124,8 @@ export async function getUserPosts(userId: string, options: { includeDrafts?: bo
 export async function getPublicPostsByUser(userId: string, limit = 10): Promise<Post[]> {
   return dbAll<Post>(
     {
-      sqlite: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? AND "visibility" = 'public' ORDER BY "createdAt" DESC LIMIT ?`,
-      postgres: `SELECT "id", "userId", "body", "visibility", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 AND "visibility" = 'public' ORDER BY "createdAt" DESC LIMIT $2`,
+      sqlite: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = ? AND "visibility" = 'public' ORDER BY "createdAt" DESC LIMIT ?`,
+      postgres: `SELECT "id", "userId", "body", "visibility", "images", "createdAt", "updatedAt" FROM "post" WHERE "userId" = $1 AND "visibility" = 'public' ORDER BY "createdAt" DESC LIMIT $2`,
     },
     [userId, limit],
   );
@@ -116,7 +135,7 @@ export async function listRecentPublicPosts(limit = 15): Promise<FeedPost[]> {
   return dbAll<FeedPost>(
     {
       sqlite: `
-        SELECT pt."id", pt."userId", pt."body", pt."visibility", pt."createdAt", pt."updatedAt",
+        SELECT pt."id", pt."userId", pt."body", pt."visibility", pt."images", pt."createdAt", pt."updatedAt",
                u."username", COALESCE(u."displayUsername", u."name", u."username") AS "displayName", p."avatarUrl"
         FROM "post" pt
         JOIN "user" u ON u."id" = pt."userId"
@@ -126,7 +145,7 @@ export async function listRecentPublicPosts(limit = 15): Promise<FeedPost[]> {
         LIMIT ?
       `,
       postgres: `
-        SELECT pt."id", pt."userId", pt."body", pt."visibility", pt."createdAt", pt."updatedAt",
+        SELECT pt."id", pt."userId", pt."body", pt."visibility", pt."images", pt."createdAt", pt."updatedAt",
                u."username", COALESCE(u."displayUsername", u."name", u."username") AS "displayName", p."avatarUrl"
         FROM "post" pt
         JOIN "user" u ON u."id" = pt."userId"

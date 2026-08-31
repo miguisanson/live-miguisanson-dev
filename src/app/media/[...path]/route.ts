@@ -8,6 +8,7 @@ const contentTypes: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".gif": "image/gif",
 };
 
 type RouteContext = {

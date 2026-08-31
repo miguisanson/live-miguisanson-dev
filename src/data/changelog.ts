@@ -28,6 +28,43 @@ export type Release = {
 
 export const releases: Release[] = [
   {
+    date: "2026-08-31",
+    tag: "v0.8.1",
+    summary: "Feed images, back links, and a pass over readability.",
+    groups: [
+      {
+        area: "Community posts",
+        items: [
+          "**Removed the public/draft dropdown.** Member posts are always public; drafts were a concept borrowed from the blog that made no sense on a short feed.",
+          "**Added image attachments, up to 5 per post**, in the Reddit style: pick images, watch them upload, remove any before posting. One image runs full width; several tile into a gallery. A post can now be images-only.",
+          "New upload route at `/api/posts/media`. It **sniffs the file signature** rather than trusting the browser-reported MIME type, so renaming an HTML file to `.png` is rejected.",
+          "Added a `post.images` column, with a migration safe to re-run on both SQLite and PostgreSQL.",
+        ],
+      },
+      {
+        area: "Navigation",
+        items: [
+          "**Added back links to every detail page** — blog posts, game details, project write-ups, the game player and the admin blog editors — as a `backHref` prop on `PageShell` so placement stays consistent.",
+          "They are real links to the known parent, not `history.back()`, which sends people somewhere unrelated when a page is opened from a search result.",
+        ],
+      },
+      {
+        area: "Readability",
+        items: [
+          "**Fixed the leftover monochrome button.** `.account-primary-button` painted `--primary` on `--theme`, rendering as a white button with dark text in dark mode. It now uses the accent like every other primary action.",
+          "**Résumé bullets were too faint** — moved from `--muted` to `--content`, taking contrast from about 5.4:1 to **13.8:1**.",
+          "**Shortened the About Me lede** from roughly 70 words to 27.",
+        ],
+      },
+      {
+        area: "Blog",
+        items: [
+          "Posts support a `pdf:` front-matter field. When present, the post shows a companion-document card with an in-page reader and a download button, reusing the certificate viewer from the résumé.",
+        ],
+      },
+    ],
+  },
+  {
     date: "2026-08-28",
     tag: "v0.8",
     summary:

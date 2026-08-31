@@ -4,12 +4,13 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { PostList } from "@/components/account/PostList";
+import { PostGallery } from "@/components/account/PostGallery";
 import { auth } from "@/lib/auth";
 import { isAdminUser } from "@/lib/admin-data";
 import { markdownToHtml } from "@/lib/content";
 import { getGame } from "@/data/games";
 import { getProfileBadges, getPublicProfileByUsername, getUserGameLaunches } from "@/lib/profile-data";
-import { getPublicPostsByUser, getUserPosts } from "@/lib/posts-data";
+import { getPublicPostsByUser, getUserPosts, postImages } from "@/lib/posts-data";
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +92,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     body: post.body,
     html: markdownToHtml(post.body),
     visibility: post.visibility,
+    images: postImages(post),
     createdAt: post.createdAt,
   }));
 
@@ -185,7 +187,10 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
                 <div className="post-card-head">
                   <time dateTime={post.createdAt}>{shortDate(post.createdAt)}</time>
                 </div>
-                <div className="post-card-body" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
+                {post.body ? (
+                  <div className="post-card-body" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
+                ) : null}
+                <PostGallery images={postImages(post)} alt={`Post by ${profile.displayName || profile.username}`} />
               </article>
             ))}
           </div>

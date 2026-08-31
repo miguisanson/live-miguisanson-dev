@@ -4,9 +4,10 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { PageShell } from "@/components/layout/PageShell";
 import { PostComposer } from "@/components/account/PostComposer";
+import { PostGallery } from "@/components/account/PostGallery";
 import { auth } from "@/lib/auth";
 import { markdownToHtml } from "@/lib/content";
-import { listRecentPublicPosts } from "@/lib/posts-data";
+import { listRecentPublicPosts, postImages } from "@/lib/posts-data";
 
 export const dynamic = "force-dynamic";
 
@@ -67,10 +68,13 @@ export default async function CommunityPage() {
                   </Link>
                   <time dateTime={post.createdAt}>{dateLabel(post.createdAt)}</time>
                 </div>
-                <div
-                  className="post-card-body"
-                  dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }}
-                />
+                {post.body ? (
+                  <div
+                    className="post-card-body"
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }}
+                  />
+                ) : null}
+                <PostGallery images={postImages(post)} alt={`Post by ${post.displayName}`} />
               </article>
             ))}
           </div>

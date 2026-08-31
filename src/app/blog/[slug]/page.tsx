@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { PageShell } from "@/components/layout/PageShell";
+import { CertificateModal } from "@/components/sections/CertificateModal";
 import { TagList } from "@/components/ui/TagList";
 import { auth } from "@/lib/auth";
 import { isAdminUser } from "@/lib/admin-data";
@@ -36,7 +37,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   return (
-    <PageShell eyebrow={formatDate(post.date)} title={post.title} description={post.summary}>
+    <PageShell
+      eyebrow={formatDate(post.date)}
+      title={post.title}
+      description={post.summary}
+      backHref="/blog"
+      backLabel="All posts"
+    >
       {post.status === "draft" ? (
         <p className="draft-notice">Draft — only visible to admins.</p>
       ) : null}
@@ -45,7 +52,35 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <TagList tags={post.tags} />
         </div>
       ) : null}
+      {post.pdf ? (
+        <aside className="doc-attachment">
+          <div className="doc-attachment-body">
+            <span className="doc-attachment-label">Companion document</span>
+            <strong>{post.title}</strong>
+            <span className="doc-attachment-note">
+              The full manual, exactly as written — code samples, diagrams and screenshots included.
+            </span>
+          </div>
+          <div className="doc-attachment-actions">
+            <button
+              type="button"
+              className="ui-button ui-button--primary ui-button--sm"
+              data-pdf={post.pdf}
+              data-title={post.title}
+            >
+              Read it here
+            </button>
+            <a className="ui-button ui-button--neutral ui-button--sm" href={post.pdf} download>
+              Download PDF
+            </a>
+          </div>
+        </aside>
+      ) : null}
+
       <article className="post-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.body) }} />
+
+      {/* Powers the in-page PDF reader for the button above. */}
+      {post.pdf ? <CertificateModal /> : null}
     </PageShell>
   );
 }

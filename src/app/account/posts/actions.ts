@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { validatePostBody } from "@/lib/account-policy";
-import { createPost, deletePost, getPost, updatePost } from "@/lib/posts-data";
+import { accountPolicy, validatePostBody } from "@/lib/account-policy";
+import { createPost, deletePost, getPost, serializePostImages, updatePost } from "@/lib/posts-data";
 
 export type PostFormState = {
   ok: boolean;
@@ -32,14 +32,28 @@ function revalidatePost(username?: string | null) {
 export async function createPostAction(_prev: PostFormState, formData: FormData): Promise<PostFormState> {
   const user = await requireUser();
   const body = String(formData.get("body") ?? "").trim();
-  const visibility = String(formData.get("visibility") ?? "public");
 
-  const error = validatePostBody(body);
-  if (error) {
-    return { ok: false, message: error };
+  // Images arrive already uploaded, as /media/posts/... URLs from the composer.
+  // serializePostImages re-checks the prefix, so a forged field cannot point the
+  // post at an arbitrary URL.
+  const images = serializePostImages(
+    formData.getAll("images").map((value) => String(value)),
+    accountPolicy.postImageMax,
+  );
+
+  // A post with no text but with pictures is a legitimate Reddit-style image
+  // post, so only require a body when nothing is attached.
+  if (!body && !images) {
+    return { ok: false, message: "Write something or attach an image." };
+  }
+  if (body) {
+    const error = validatePostBody(body);
+    if (error) {
+      return { ok: false, message: error };
+    }
   }
 
-  await createPost(user.id, body, visibility);
+  await createPost(user.id, body, "public", images);
   revalidatePost(user.username);
   return { ok: true, message: "Posted." };
 }

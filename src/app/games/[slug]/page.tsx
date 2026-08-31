@@ -32,7 +32,13 @@ export default async function GamePage({ params, searchParams }: GamePageProps) 
   }
 
   return (
-    <PageShell eyebrow="Game" title={game.title} description={game.description}>
+    <PageShell
+      eyebrow="Game"
+      title={game.title}
+      description={game.description}
+      backHref="/games"
+      backLabel="All games"
+    >
       <section className="account-card">
         <div className="account-card-heading">
           <h2>Status</h2>

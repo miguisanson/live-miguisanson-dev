@@ -14,6 +14,8 @@ export const accountPolicy = {
   socialHandleMaxLength: 120,
   favoriteGamesMax: 6,
   postMaxLength: 2000,
+  /** Reddit caps a gallery at 20; 5 is plenty for a small community feed. */
+  postImageMax: 5,
 };
 
 export const profileBackgroundPatterns = ["none", "dots", "grid", "diagonal"] as const;

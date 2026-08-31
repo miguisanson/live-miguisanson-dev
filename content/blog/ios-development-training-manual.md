@@ -3,6 +3,7 @@ title: "Writing an iOS training manual: what teaching it taught me"
 date: "2026-07-23"
 summary: "A 10-module iOS curriculum built during a 504-hour internship — the structure, the misconceptions I had to correct, and why every UIKit example got a SwiftUI twin."
 tags: iOS, Swift, UIKit, SwiftUI, Architecture, Teaching
+pdf: "/documents/ios-development-training-manual.pdf"
 ---
 
 During my internship at Seven Seven Global Services I was asked to produce an iOS

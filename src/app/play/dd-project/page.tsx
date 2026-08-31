@@ -39,6 +39,8 @@ export default async function DDProjectPage() {
       eyebrow="Single-player"
       title="DD Project"
       description="A private browser instance linked to your signed-in account."
+      backHref="/games"
+      backLabel="All games"
     >
       <DDProjectPlayer />
     </PageShell>

@@ -33,7 +33,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   }
 
   return (
-    <PageShell eyebrow={project.status} title={project.title} description={project.description}>
+    <PageShell
+      eyebrow={project.status}
+      title={project.title}
+      description={project.description}
+      backHref="/resume#projects"
+      backLabel="Back to resume"
+    >
       <div style={{ marginBottom: 20 }}>
         <TagList tags={project.tech} />
       </div>

@@ -33,6 +33,25 @@ async function exec(db, sqliteSql, postgresSql = sqliteSql) {
   db.database.exec(sqliteSql);
 }
 
+/**
+ * Adds a column only when it is not already present.
+ *
+ * PostgreSQL has ADD COLUMN IF NOT EXISTS; SQLite does not, so its table info is
+ * inspected first. Both paths are idempotent.
+ */
+async function addColumnIfMissing(db, table, column, definition) {
+  if (db.dialect === "postgres") {
+    await db.pool.query(`ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS "${column}" ${definition};`);
+    return;
+  }
+
+  const columns = db.database.prepare(`PRAGMA table_info("${table}")`).all();
+  if (columns.some((entry) => entry.name === column)) {
+    return;
+  }
+  db.database.exec(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${definition};`);
+}
+
 export async function ensureAppSchema(repoRoot) {
   const db = getDatabase(repoRoot);
 
@@ -243,6 +262,11 @@ export async function ensureAppSchema(repoRoot) {
         );
       `,
     );
+
+    // Attached images on community posts, added after "post" already existed in
+    // production. SQLite has no ADD COLUMN IF NOT EXISTS, so check first; both
+    // branches are safe to run repeatedly.
+    await addColumnIfMissing(db, "post", "images", "text not null default ''");
 
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_createdAt" ON "auditLog" ("createdAt");`);
     await exec(db, `CREATE INDEX IF NOT EXISTS "idx_auditLog_eventType" ON "auditLog" ("eventType");`);

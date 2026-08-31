@@ -20,7 +20,13 @@ export default async function NewBlogPostPage() {
   }
 
   return (
-    <PageShell eyebrow="Admin" title="New post" description="Write a post in markdown, then publish it or keep it as a draft.">
+    <PageShell
+      eyebrow="Admin"
+      title="New post"
+      description="Write a post in markdown, then publish it or keep it as a draft."
+      backHref="/admin/blog"
+      backLabel="All blog posts"
+    >
       <BlogEditor />
     </PageShell>
   );

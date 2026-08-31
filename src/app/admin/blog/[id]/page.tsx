@@ -30,7 +30,13 @@ export default async function EditBlogPostPage({ params }: PageProps) {
   }
 
   return (
-    <PageShell eyebrow="Admin" title="Edit post" description={`/blog/${post.slug}`}>
+    <PageShell
+      eyebrow="Admin"
+      title="Edit post"
+      description={`/blog/${post.slug}`}
+      backHref="/admin/blog"
+      backLabel="All blog posts"
+    >
       <BlogEditor post={post} />
       <DeleteBlogPostButton id={post.id} title={post.title} />
     </PageShell>

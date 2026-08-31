@@ -14,6 +14,56 @@ into a single Pre-history entry at the bottom.
 
 ---
 
+## 2026-08-31 — v0.8.1
+
+Feed images, back links, and a pass over readability.
+
+### Community posts
+
+- **Removed the public/draft dropdown.** Member posts are always public; drafts
+  were a concept borrowed from the blog that made no sense on a short feed. The
+  per-post "Make draft" toggle and the Public/Draft pill are gone too.
+- **Added image attachments, up to 5 per post**, in the Reddit style: pick
+  images, see thumbnails while they upload, remove any before posting. One image
+  renders full width; several tile into a gallery. A post can now be images-only
+  with no text.
+- New upload route at `/api/posts/media`. It **sniffs the file signature** rather
+  than trusting the browser-reported MIME type, so renaming an HTML file to
+  `.png` is rejected. Verified: real images accepted, spoofed types rejected with
+  400, unauthenticated requests rejected with 401.
+- `post.images` column added, with a migration that is safe to re-run on both
+  SQLite and PostgreSQL.
+
+### Navigation
+
+- **Added back links to every detail page** — blog posts, game details, project
+  write-ups, the DD Project player, and the admin blog editors. Implemented as a
+  `backHref` prop on `PageShell` so the placement stays consistent.
+- They are real links to the known parent, not `history.back()`, which sends
+  people somewhere unrelated when a page is opened from a search result.
+
+### Readability
+
+- **Fixed the leftover monochrome button.** `.account-primary-button` painted
+  `--primary` on `--theme`, which rendered as a **white button with dark text**
+  in dark mode — the odd-looking Post and Log in buttons. It now uses the accent,
+  matching every other primary action. Its `translateY` hover was also removed.
+- **Résumé bullets were too faint.** They used `--muted`; they now use
+  `--content`, taking contrast from about 5.4:1 to **13.8:1**.
+- **Shortened the About Me lede** from roughly 70 words to 27. The detail already
+  lives in Experience and Projects; the intro is the hook, not the summary.
+
+### Blog
+
+- Blog posts support a `pdf:` front-matter field. When present, the post shows a
+  companion-document card with an in-page reader and a download button, reusing
+  the certificate viewer from the résumé. The buttons do not render when the file
+  is absent.
+- The iOS training manual post is wired to
+  `/documents/ios-development-training-manual.pdf`.
+
+---
+
 ## 2026-08-28
 
 Résumé refresh, blog rebuild with admin authoring, community restructure, and a

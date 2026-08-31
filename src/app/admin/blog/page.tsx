@@ -37,6 +37,8 @@ export default async function AdminBlogPage() {
       eyebrow="Admin"
       title="Blog posts"
       description="Write and publish long-form posts. Markdown files in the repository are listed too, but are edited in code."
+      backHref="/admin"
+      backLabel="Admin dashboard"
     >
       <div className="admin-toolbar">
         <Link className="ui-button ui-button--primary ui-button--md" href="/admin/blog/new">
