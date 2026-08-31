@@ -99,30 +99,38 @@ function runtimeHtml(instanceId: string) {
       Your browser does not support HTML5 canvas.
     </canvas>
   </div>
-  <!-- Installed BEFORE the game script so the runtime never sees the real XHR. -->
+  <!-- Installed BEFORE the game script so the runtime never opens these. -->
   <script>
     (function () {
       // WHY THIS EXISTS
       //
-      // GameMaker's file_exists() is implemented as a *synchronous* XHR:
+      // GameMaker implements file_exists() as a *synchronous* XHR:
       //     xhr.open('HEAD', path, false)
-      // The title screen calls it for savedata0/1/2.sav on every frame, so the
-      // game issued ~180 blocking requests a second. Each one blocked the main
-      // thread for a full network round trip, which froze the whole page, and
-      // each 404 was served by the Next.js router, which saturated the server.
+      // The title screen calls it for savedata0/1/2.sav every frame, so the game
+      // fired ~180 blocking requests a second. Each blocked the main thread for a
+      // full round trip, freezing the page, and each 404 was rendered by the
+      // Next.js router, saturating the server.
       //
-      // Game data files are backed by localStorage here instead. Nothing touches
-      // the network, the calls return in microseconds, and saving actually works
-      // — writing to a static asset path could never have persisted anything.
+      // Game data files are backed by localStorage instead: no network, no main
+      // thread blocking, and saving actually persists — writing to a static asset
+      // path never could.
+      //
+      // The prototype methods are patched IN PLACE rather than replacing the
+      // XMLHttpRequest class. A wrapper object would have to forward every
+      // handler property (onload, onreadystatechange, onprogress, …) to the real
+      // request, and anything missed silently breaks asset loading. Patching in
+      // place means a request we do not intercept is an ordinary, untouched XHR.
       var PREFIX = ${JSON.stringify(assetRoot)};
       var instance = ${serializedInstance};
 
-      // Anything the game treats as writable data rather than a shipped asset.
+      // Files the game treats as writable data, not shipped assets. Deliberately
+      // narrow: anything not matched here goes to the network as normal.
       function isGameDataFile(url) {
         if (typeof url !== "string") return false;
         var path = url.split("?")[0];
         if (path.indexOf(PREFIX) === -1) return false;
-        return /\.(sav|ini|json|dat|txt)$/i.test(path) && path.indexOf("/localization/") === -1;
+        if (path.indexOf("/localization/") !== -1) return false;
+        return /\.(sav|ini|dat)$/i.test(path) || /settings_config\.json$/i.test(path);
       }
 
       function storageKey(url) {
@@ -130,94 +138,78 @@ function runtimeHtml(instanceId: string) {
         return "ddproject:" + instance + ":" + path.slice(path.lastIndexOf("/") + 1);
       }
 
-      var RealXHR = window.XMLHttpRequest;
-
-      function ShimXHR() {
-        this._real = new RealXHR();
-        this._intercept = false;
+      function define(xhr, name, value) {
+        Object.defineProperty(xhr, name, { value: value, configurable: true, writable: true });
       }
 
-      ShimXHR.prototype.open = function (method, url) {
-        this._method = String(method || "GET").toUpperCase();
-        this._url = url;
-        this._intercept = isGameDataFile(url);
-        if (!this._intercept) {
-          return RealXHR.prototype.open.apply(this._real, arguments);
+      var proto = XMLHttpRequest.prototype;
+      var realOpen = proto.open;
+      var realSend = proto.send;
+      var realSetHeader = proto.setRequestHeader;
+      var realOverrideMime = proto.overrideMimeType;
+
+      proto.open = function (method, url) {
+        this.__ddIntercept = isGameDataFile(url);
+        if (!this.__ddIntercept) {
+          return realOpen.apply(this, arguments);
         }
-        this._key = storageKey(url);
+        this.__ddMethod = String(method || "GET").toUpperCase();
+        this.__ddKey = storageKey(url);
       };
 
-      ShimXHR.prototype.send = function (body) {
-        if (!this._intercept) {
-          return RealXHR.prototype.send.apply(this._real, arguments);
+      // These throw InvalidStateError on a request that was never really opened.
+      proto.setRequestHeader = function () {
+        if (this.__ddIntercept) return;
+        return realSetHeader.apply(this, arguments);
+      };
+      proto.overrideMimeType = function () {
+        if (this.__ddIntercept) return;
+        return realOverrideMime.apply(this, arguments);
+      };
+
+      proto.send = function (body) {
+        if (!this.__ddIntercept) {
+          return realSend.apply(this, arguments);
         }
 
         var stored = null;
         try {
-          stored = window.localStorage.getItem(this._key);
+          stored = window.localStorage.getItem(this.__ddKey);
         } catch (e) {
-          // Private browsing can throw on access; behave as "no save present".
-          stored = null;
+          stored = null; // Private browsing: behave as "no save present".
         }
 
-        if (this._method === "PUT" || this._method === "POST") {
+        var status;
+        var text = "";
+        if (this.__ddMethod === "PUT" || this.__ddMethod === "POST") {
           try {
-            window.localStorage.setItem(this._key, body == null ? "" : String(body));
-            this._status = 200;
-            this._text = "";
+            window.localStorage.setItem(this.__ddKey, body == null ? "" : String(body));
+            status = 200;
           } catch (e) {
-            this._status = 507;
-            this._text = "";
+            status = 507;
           }
         } else if (stored === null) {
-          this._status = 404;
-          this._text = "";
+          status = 404;
         } else {
-          this._status = 200;
-          this._text = this._method === "HEAD" ? "" : stored;
+          status = 200;
+          text = this.__ddMethod === "HEAD" ? "" : stored;
         }
 
-        this._done = true;
+        // Own properties shadow the prototype's read-only getters.
+        define(this, "status", status);
+        define(this, "statusText", status === 200 ? "OK" : "Not Found");
+        define(this, "readyState", 4);
+        define(this, "responseText", text);
+        define(this, "response", text);
+        define(this, "getAllResponseHeaders", function () { return ""; });
+        define(this, "getResponseHeader", function () { return null; });
+
         if (typeof this.onreadystatechange === "function") this.onreadystatechange();
         if (typeof this.onload === "function") this.onload();
       };
-
-      // The runtime reads these directly off the object after a sync send().
-      Object.defineProperties(ShimXHR.prototype, {
-        status: {
-          get: function () { return this._intercept ? this._status : this._real.status; },
-        },
-        readyState: {
-          get: function () { return this._intercept ? (this._done ? 4 : 1) : this._real.readyState; },
-        },
-        responseText: {
-          get: function () { return this._intercept ? this._text : this._real.responseText; },
-        },
-        response: {
-          get: function () { return this._intercept ? this._text : this._real.response; },
-        },
-        statusText: {
-          get: function () { return this._intercept ? (this._status === 200 ? "OK" : "Not Found") : this._real.statusText; },
-        },
-      });
-
-      ["setRequestHeader", "overrideMimeType", "abort", "addEventListener", "removeEventListener"].forEach(function (name) {
-        ShimXHR.prototype[name] = function () {
-          if (this._intercept) return undefined;
-          return RealXHR.prototype[name].apply(this._real, arguments);
-        };
-      });
-
-      ShimXHR.prototype.getAllResponseHeaders = function () {
-        return this._intercept ? "" : RealXHR.prototype.getAllResponseHeaders.apply(this._real, arguments);
-      };
-      ShimXHR.prototype.getResponseHeader = function () {
-        return this._intercept ? null : RealXHR.prototype.getResponseHeader.apply(this._real, arguments);
-      };
-
-      window.XMLHttpRequest = ShimXHR;
     })();
   </script>
+
   <script src="${assetRoot}DD-Project.js"></script>
   <script>
     window.__MIGUISANSON_GAME_INSTANCE__ = ${serializedInstance};
