@@ -18,6 +18,25 @@ into a single Pre-history entry at the bottom.
 
 Feed images, back links, and a pass over readability.
 
+### Games — DD Project freeze on input
+
+- **Fixed the page freezing and the dev server stalling on "Compiling…" as soon
+  as you touched the controls.** GameMaker implements `file_exists()` as a
+  **synchronous** XHR — `xhr.open('HEAD', path, false)` — and the title screen
+  calls it for `savedata0/1/2.sav` every frame. That is roughly **180 blocking
+  requests a second**, each stalling the main thread for a full network round
+  trip and each 404 rendered by the Next.js router. Measured **1561 requests**
+  in one short session.
+- Game data files are now backed by **localStorage** through a small
+  `XMLHttpRequest` shim installed before the runtime loads. Save reads and writes
+  resolve in microseconds, never touch the network, and never block the main
+  thread. Measured after the fix: **0 requests**, down from 1561.
+- **Saving now actually works.** Writes previously went to a static asset path,
+  which could not persist anything. Keys are namespaced per account, so two
+  members sharing a browser keep separate progress.
+- Real game assets — textures, audio, localisation — are untouched by the shim
+  and still load over the network. Verified alongside the save paths.
+
 ### Games — DD Project input
 
 - **Fixed the game freezing on the title screen with dead controls.** It was not

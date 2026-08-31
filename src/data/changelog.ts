@@ -33,6 +33,15 @@ export const releases: Release[] = [
     summary: "Feed images, back links, and a pass over readability.",
     groups: [
       {
+        area: "Games — DD Project freeze",
+        items: [
+          "**Fixed the page freezing and the dev server stalling on \"Compiling…\" as soon as the controls were touched.** GameMaker implements `file_exists()` as a *synchronous* XHR, and the title screen called it for three save files every frame — roughly **180 blocking requests a second**, each stalling the main thread for a full round trip. Measured 1561 requests in one short session.",
+          "Game data files are now backed by **localStorage** through an `XMLHttpRequest` shim installed before the runtime loads. Measured after the fix: **0 requests**.",
+          "**Saving now actually works.** Writes previously went to a static asset path, which could not persist anything. Keys are namespaced per account.",
+          "Real game assets are untouched by the shim and still load over the network.",
+        ],
+      },
+      {
         area: "Games — DD Project input",
         items: [
           "**Fixed the game freezing on the title screen with dead controls.** It was not frozen: GameMaker binds keyboard with `window.onkeydown` on the *iframe's* own window and clears both handlers on blur, so with focus in the parent document no key ever reached the game.",

@@ -99,6 +99,125 @@ function runtimeHtml(instanceId: string) {
       Your browser does not support HTML5 canvas.
     </canvas>
   </div>
+  <!-- Installed BEFORE the game script so the runtime never sees the real XHR. -->
+  <script>
+    (function () {
+      // WHY THIS EXISTS
+      //
+      // GameMaker's file_exists() is implemented as a *synchronous* XHR:
+      //     xhr.open('HEAD', path, false)
+      // The title screen calls it for savedata0/1/2.sav on every frame, so the
+      // game issued ~180 blocking requests a second. Each one blocked the main
+      // thread for a full network round trip, which froze the whole page, and
+      // each 404 was served by the Next.js router, which saturated the server.
+      //
+      // Game data files are backed by localStorage here instead. Nothing touches
+      // the network, the calls return in microseconds, and saving actually works
+      // — writing to a static asset path could never have persisted anything.
+      var PREFIX = ${JSON.stringify(assetRoot)};
+      var instance = ${serializedInstance};
+
+      // Anything the game treats as writable data rather than a shipped asset.
+      function isGameDataFile(url) {
+        if (typeof url !== "string") return false;
+        var path = url.split("?")[0];
+        if (path.indexOf(PREFIX) === -1) return false;
+        return /\.(sav|ini|json|dat|txt)$/i.test(path) && path.indexOf("/localization/") === -1;
+      }
+
+      function storageKey(url) {
+        var path = url.split("?")[0];
+        return "ddproject:" + instance + ":" + path.slice(path.lastIndexOf("/") + 1);
+      }
+
+      var RealXHR = window.XMLHttpRequest;
+
+      function ShimXHR() {
+        this._real = new RealXHR();
+        this._intercept = false;
+      }
+
+      ShimXHR.prototype.open = function (method, url) {
+        this._method = String(method || "GET").toUpperCase();
+        this._url = url;
+        this._intercept = isGameDataFile(url);
+        if (!this._intercept) {
+          return RealXHR.prototype.open.apply(this._real, arguments);
+        }
+        this._key = storageKey(url);
+      };
+
+      ShimXHR.prototype.send = function (body) {
+        if (!this._intercept) {
+          return RealXHR.prototype.send.apply(this._real, arguments);
+        }
+
+        var stored = null;
+        try {
+          stored = window.localStorage.getItem(this._key);
+        } catch (e) {
+          // Private browsing can throw on access; behave as "no save present".
+          stored = null;
+        }
+
+        if (this._method === "PUT" || this._method === "POST") {
+          try {
+            window.localStorage.setItem(this._key, body == null ? "" : String(body));
+            this._status = 200;
+            this._text = "";
+          } catch (e) {
+            this._status = 507;
+            this._text = "";
+          }
+        } else if (stored === null) {
+          this._status = 404;
+          this._text = "";
+        } else {
+          this._status = 200;
+          this._text = this._method === "HEAD" ? "" : stored;
+        }
+
+        this._done = true;
+        if (typeof this.onreadystatechange === "function") this.onreadystatechange();
+        if (typeof this.onload === "function") this.onload();
+      };
+
+      // The runtime reads these directly off the object after a sync send().
+      Object.defineProperties(ShimXHR.prototype, {
+        status: {
+          get: function () { return this._intercept ? this._status : this._real.status; },
+        },
+        readyState: {
+          get: function () { return this._intercept ? (this._done ? 4 : 1) : this._real.readyState; },
+        },
+        responseText: {
+          get: function () { return this._intercept ? this._text : this._real.responseText; },
+        },
+        response: {
+          get: function () { return this._intercept ? this._text : this._real.response; },
+        },
+        statusText: {
+          get: function () { return this._intercept ? (this._status === 200 ? "OK" : "Not Found") : this._real.statusText; },
+        },
+      });
+
+      ["setRequestHeader", "overrideMimeType", "abort", "addEventListener", "removeEventListener"].forEach(function (name) {
+        ShimXHR.prototype[name] = function () {
+          if (this._intercept) return undefined;
+          return RealXHR.prototype[name].apply(this._real, arguments);
+        };
+      });
+
+      ShimXHR.prototype.getAllResponseHeaders = function () {
+        return this._intercept ? "" : RealXHR.prototype.getAllResponseHeaders.apply(this._real, arguments);
+      };
+      ShimXHR.prototype.getResponseHeader = function () {
+        return this._intercept ? null : RealXHR.prototype.getResponseHeader.apply(this._real, arguments);
+      };
+
+      window.XMLHttpRequest = ShimXHR;
+    })();
+  </script>
   <script src="${assetRoot}DD-Project.js"></script>
   <script>
     window.__MIGUISANSON_GAME_INSTANCE__ = ${serializedInstance};
