@@ -14,6 +14,30 @@ into a single Pre-history entry at the bottom.
 
 ---
 
+## 2026-09-20 — v0.8 plan
+
+The v0.8 revamp is planned and the repository is set up for a test-first,
+multi-agent build. No site behaviour changed.
+
+### Project
+
+- Cut `v0.8` from `v0.7` and restored the agent dev kit (GSD config, the
+  `/continue_live-miguisanson-dev` start command).
+- Added `docs/VISION.md` (what the site is and the seven rules that do not
+  change), `docs/ROADMAP.md` (61 rows across eight milestones, each with a
+  "Done when"), `docs/REFERENCES.md` (about 110 sites and repositories with a
+  licence verdict on each), `docs/PROPOSALS.md` (the review and the decisions
+  taken) and `docs/SETUP-OWNER.md`.
+- The previous `ROADMAP.md` is kept as `docs/ROADMAP-v0.7.md`.
+- Rewrote `AGENTS.md` and `CLAUDE.md`: check first, one owner per job, the
+  Claude / Codex / Sonnet / local-model split, the fallback ladder.
+- Ported the unattended autopilot runner from rpg-gm (`scripts/autopilot*.mjs`,
+  three prompts, `/checkin_live-miguisanson-dev`). It must not be started until
+  the test runners and the gate exist.
+- Seeded `.planning/` (project, requirements, roadmap, state, improvements).
+
+---
+
 ## 2026-08-31 — v0.8.1
 
 Feed images, back links, and a pass over readability.

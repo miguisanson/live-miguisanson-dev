@@ -15,3 +15,21 @@ next-dev.err.log
 /REFERENCES
 games/*/target/
 /DD-Project.zip
+
+# GSD Core install (reinstall: npx @opengsd/gsd-core@latest --claude --local).
+# Its working plans in .planning/ ARE committed.
+.claude/settings.local.json
+.claude/.gsd-profile
+.claude/.gsd-runtime
+.claude/agents/gsd-*
+.claude/commands/gsd-*
+.claude/gsd-*
+.claude/hooks/
+.claude/scripts/
+
+# Autopilot logs and leftovers
+logs/
+/themes/
+playwright/.auth/
+test-results/
+playwright-report/

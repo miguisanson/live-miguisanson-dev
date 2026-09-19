@@ -28,6 +28,22 @@ export type Release = {
 
 export const releases: Release[] = [
   {
+    date: "2026-09-20",
+    tag: "v0.8 plan",
+    summary: "The v0.8 revamp is planned and the repository is set up for a test-first, multi-agent build. No site behaviour changed.",
+    groups: [
+      {
+        area: "Project",
+        items: [
+          "Cut `v0.8` from `v0.7` and restored the agent dev kit.",
+          "Added a vision, a 61-row roadmap where every row has a \"Done when\", a references file with a licence verdict on every source, and a record of the review and the decisions taken.",
+          "Rewrote the agent rules: check first, one owner per job, and a fallback ladder between Claude, Codex, Sonnet subagents and the local model.",
+          "Ported the unattended autopilot runner from rpg-gm. It stays off until the test runners and the gate exist.",
+        ],
+      },
+    ],
+  },
+  {
     date: "2026-08-31",
     tag: "v0.8.1",
     summary: "Feed images, back links, and a pass over readability.",
