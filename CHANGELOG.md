@@ -34,6 +34,8 @@ multi-agent build. No site behaviour changed.
 - Ported the unattended autopilot runner from rpg-gm (`scripts/autopilot*.mjs`,
   three prompts, `/checkin_live-miguisanson-dev`). It must not be started until
   the test runners and the gate exist.
+- Added the project's shared agent settings (no reading secrets, no force-push,
+  no deploying) and the `/gate` and `/packet` commands, matching rpg-gm.
 - Seeded `.planning/` (project, requirements, roadmap, state, improvements).
 
 ---

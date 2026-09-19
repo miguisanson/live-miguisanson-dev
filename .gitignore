@@ -29,6 +29,9 @@ games/*/target/
 
 # Autopilot logs and leftovers
 logs/
+# Autopilot signals (scripts/autopilot.mjs), never committed
+.planning/AUTOPILOT_STOP
+.planning/AUTOPILOT_IDLE
 /themes/
 playwright/.auth/
 test-results/

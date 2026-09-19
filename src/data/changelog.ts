@@ -39,6 +39,7 @@ export const releases: Release[] = [
           "Added a vision, a 61-row roadmap where every row has a \"Done when\", a references file with a licence verdict on every source, and a record of the review and the decisions taken.",
           "Rewrote the agent rules: check first, one owner per job, and a fallback ladder between Claude, Codex, Sonnet subagents and the local model.",
           "Ported the unattended autopilot runner from rpg-gm. It stays off until the test runners and the gate exist.",
+          "Added shared agent settings (no reading secrets, no force-push, no deploying) and `/gate` and `/packet` commands.",
         ],
       },
     ],

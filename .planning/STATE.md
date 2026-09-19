@@ -84,6 +84,18 @@ Steps for each are in `docs/SETUP-OWNER.md`. The build never waits on these.
 
 ## Recent sessions
 
+### 2026-09-20 — autopilot readiness check (Opus, interactive) — no row
+
+Compared the kit with rpg-gm's. Runner, lib, start script and three prompts
+match (names aside). Added what was missing: `.claude/settings.json` (denies
+`.env*` reads, force-push, `reset --hard`, ssh/deploy — deny rules hold even
+under the runner's skip-permissions), `/gate` and `/packet` commands, and the
+`AUTOPILOT_STOP` / `AUTOPILOT_IDLE` ignores. **Verified:** settings JSON parses;
+`sessionPlan` gives Sonnet for session 1, Opus review for session 5; `claude`
+2.1.273, `codex`, Ollama `qwen2.5-coder:7b` present. **Start order:** G-11 and
+G-3…G-6 interactively with `/continue_live-miguisanson-dev`, then
+`scripts\autopilot-start.cmd` (PROPOSALS §4 row 13).
+
 ### 2026-09-20 — planning session (Fable, interactive) — G-1 ✅
 
 Found the v0.7 revamp only on GitHub while local work sat on v0.6; cut `v0.8`
