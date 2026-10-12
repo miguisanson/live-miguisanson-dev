@@ -14,7 +14,7 @@ import { spawn, execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { claudeArgs, holdReason, nextStep, sessionPlan } from "./autopilot-lib.mjs";
+import { claudeArgs, ensureLocalModel, holdReason, nextStep, sessionPlan } from "./autopilot-lib.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const LOGS = join(ROOT, "logs", "autopilot");
@@ -25,6 +25,8 @@ const IDLE_FILE = join(ROOT, ".planning", "AUTOPILOT_IDLE");
 const GO_FILE = join(ROOT, ".planning", "IMPROVE_GO");
 // A runaway session is killed after this long so the loop always comes back.
 const SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+const OLLAMA_URL = "http://127.0.0.1:11434/api/version";
+const OLLAMA_APP = join(process.env.LOCALAPPDATA ?? "", "Programs", "Ollama", "ollama app.exe");
 
 mkdirSync(LOGS, { recursive: true });
 
@@ -51,6 +53,28 @@ function alive(pid) {
   } catch {
     return false;
   }
+}
+
+async function ollamaUp() {
+  try {
+    return (await fetch(OLLAMA_URL, { signal: AbortSignal.timeout(2000) })).ok;
+  } catch {
+    return false;
+  }
+}
+
+function startOllama() {
+  if (!existsSync(OLLAMA_APP)) return false;
+  // The tray app, not `ollama serve`: it outlives the runner, so the owner keeps it afterwards.
+  spawn(OLLAMA_APP, [], { detached: true, stdio: "ignore" }).unref();
+  return true;
+}
+
+// Checked before every session, not just at start: the owner may quit Ollama
+// (or a game may need the memory) while the runner sleeps through a limit.
+async function checkLocalModel() {
+  const status = await ensureLocalModel({ isUp: ollamaUp, start: startOllama, wait: () => sleep(1000) });
+  if (status !== "already running") log(`Local model (Ollama): ${status}.`);
 }
 
 async function takeLock() {
@@ -153,6 +177,7 @@ async function main() {
       log(`Not starting: ${hold}`);
       return;
     }
+    await checkLocalModel();
     const before = commitCount();
     const { exitCode, output } = await runSession(index);
     const newCommits = commitCount() - before;

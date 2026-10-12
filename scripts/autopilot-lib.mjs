@@ -116,3 +116,18 @@ export function sessionPlan({ index, roadmapDone }) {
 export function claudeArgs(model = "sonnet") {
   return ["-p", "--model", model, "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose"];
 }
+
+/**
+ * Makes sure the local model (Ollama) answers before a session starts, so the
+ * session's cheap text work goes to it rather than a paid model. It never
+ * throws: when Ollama cannot be started the session falls back to Haiku.
+ */
+export async function ensureLocalModel({ isUp, start, wait, attempts = 20 }) {
+  if (await isUp()) return "already running";
+  if (!start()) return "not installed";
+  for (let i = 0; i < attempts; i++) {
+    await wait();
+    if (await isUp()) return "started";
+  }
+  return "not responding";
+}
