@@ -14,10 +14,9 @@ Run roadmap row **$1**.
    the right reason.** AGENTS.md Rule 1 — no exceptions. The table there says
    which kind of check each area gets.
 4. **Implement** until the targeted check passes (one file:
-   `npx vitest run <file>` or `npx playwright test <spec>`). Hand Codex the
-   failing check and the contract in its own worktree
-   (`E:/Github_Projects/live-miguisanson-dev-wt/<short>`), else a `sonnet`
-   subagent; review the whole diff. Rows under AGENTS.md Rule 4 (auth,
+   `npx vitest run <file>` or `npx playwright test <spec>`). Hand a `sonnet`
+   subagent the failing check and the contract in its own worktree
+   (`E:/Github_Projects/live-miguisanson-dev-wt/<short>`); review the whole diff. Rows under AGENTS.md Rule 4 (auth,
    sessions, accounts, uploads, tickets, CSP, deploy) get a security read and
    `/security-review` before committing.
 5. **Run `/gate`.**

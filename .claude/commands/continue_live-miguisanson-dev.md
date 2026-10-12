@@ -17,11 +17,13 @@ remaining row waits on the owner.
    reordered or skipped. ⏸️ rows are never built; 👤 rows are built around, never
    waited on. `.planning/` tracks execution only.
 3. **Keep the strong model's usage low.** You write checks and contracts,
-   review, run the gate and commit. **Codex writes implementations**
-   (`mcp__codex__codex` for one packet; `codex exec` in worktrees for several).
-   The **local model** (`mcp__ollama__ask_local`) does mechanical text. When
-   either is out, follow the fallback ladder in AGENTS.md instead of stopping.
-   GSD stays on the `budget` profile. Keep replies to the owner short.
+   review, run the gate and commit. **Sonnet subagents write implementations**
+   (`Agent` with `model: "sonnet"`, in git worktrees, several at once when
+   independent). The **local model** (`mcp__ollama__ask_local`) does
+   mechanical text. If the local model or subagents are unavailable, follow the
+   fallback ladder in AGENTS.md (Haiku subagent, then inline in small packets)
+   instead of stopping.
+   GSD stays on the `balanced` profile. Keep replies to the owner short.
 4. **Decide, don't ask.** Only the kinds of question in `docs/PROPOSALS.md` §4
    row 12 go to the owner. For everything else take the recommended option,
    record it (PROPOSALS §4 or VISION) and continue.
@@ -41,9 +43,9 @@ remaining row waits on the owner.
    `git status` / WIP branches / worktrees disagree, the last session ended
    abruptly. Work out what that work was, finish or discard it, and make
    STATE.md true before starting anything new.
-5. Check the helpers once, cheaply: one tiny Codex call, one tiny
-   `ask_local` call. Note in STATE.md which rung of the ladder this session
-   is on.
+5. Check the local model once, cheaply: one tiny `ask_local` call. (Subagent
+   availability shows on first use; do not spawn one just to test it.) Note in
+   STATE.md which rung of the ladder this session is on.
 
 ## The loop — repeat until done
 
@@ -62,7 +64,7 @@ c. `/gsd-plan-phase`, then `/gsd-execute-phase`. Every task keeps the fixed
    1. Write the failing check from the row's **Done when**; watch it fail.
    2. Write the contract (files, signatures, class names and tokens, states,
       out of scope).
-   3. Implementation to Codex in a worktree (`superpowers:using-git-worktrees`).
+   3. Implementation to a `sonnet` subagent in a worktree (`superpowers:using-git-worktrees`).
       Independent packets in parallel **only once G-3…G-6 are ✅**; pilot one
       before a batch; two packets never share a file.
    4. Run the targeted check and then the gate yourself, in the main checkout.

@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Rules for any agent working on this repo
 
-These apply to every agent — Claude Code, Codex, a local model, or a human.
+These apply to every agent — Claude Code, a Claude subagent, a local model, or a human.
 (The block above is written by `next dev`; leave it exactly as it is. It only
 manages the text between its markers — everything below is ours and durable.)
 
@@ -142,17 +142,15 @@ npm audit --omit=dev
 ```
 
 Until G-6: `npm run typecheck && npm run build`. Run the gate in the **main
-checkout, in the foreground** — never inside a worktree, never in Codex's
-sandbox.
+checkout, in the foreground** — never inside a worktree, never handed to a subagent.
 
 ## How the team splits work
 
 | Agent | Does | Does not |
 |---|---|---|
 | **Claude, main session** (Opus/Fable interactively; Sonnet under the autopilot) | Picks the row, writes the failing check and the contract, reviews every diff, runs the gate, commits, keeps STATE.md; owns anything under Rule 4 | Grind through bulk implementation |
-| **Codex** (`mcp__codex__codex` for one packet; `codex exec` in worktrees for several) | Makes a written failing check pass against a stated contract, in its own worktree | Change a check to fit its code; widen scope; run the gate (its sandbox cannot spawn processes) |
-| **Sonnet subagents** (`Agent`, `model: "sonnet"`) | Codex's job when Codex is out; research; codebase mapping; independent packets in parallel | Decide design; touch Rule 4 areas unreviewed |
-| **Local model** (`mcp__ollama__ask_local`, qwen2.5-coder:7b) — else `haiku` | Commit messages, changelog wording, docstrings, summarising a long file before a paid model reads it | Multi-file reasoning, anything unverified |
+| **Sonnet subagents** (`Agent`, `model: "sonnet"`) | Make a written failing check pass against a stated contract, each in its own worktree (can run the targeted tests); research; codebase mapping; independent packets in parallel | Change a check to fit its code; widen scope; run the gate; decide design; touch Rule 4 areas unreviewed |
+| **Local model** (`mcp__ollama__ask_local`, largest that loads: qwen3:8b first) — else `haiku` | Commit messages, changelog wording, docstrings, summarising a long file before a paid model reads it | Multi-file reasoning, anything unverified |
 | **Strong-model review** (every fifth autopilot session) | Finds what cheap sessions miss — hollow tests, drift from VISION, security mistakes — and **fixes** it | Build roadmap rows |
 
 The failing check **is** the handoff: a precise, machine-checkable spec.
@@ -161,7 +159,7 @@ The failing check **is** the handoff: a precise, machine-checkable spec.
 
 ```
 Claude   writes the failing check + the contract        → watches it fail
-Codex    implements in its own git worktree             → (cannot run tests)
+Subagent implements in its own git worktree             → (can run the targeted tests)
 Claude   runs the targeted check, then the gate         → reviews the diff, not just "green"
 Claude   commits check and implementation together      → updates ROADMAP, CHANGELOG ×2, STATE
 ```
@@ -174,14 +172,17 @@ long text, both themes, 375 px), and what is out of scope.
 
 ```bash
 git worktree add -b <branch> E:/Github_Projects/live-miguisanson-dev-wt/<short> HEAD
-codex exec -C "E:/Github_Projects/live-miguisanson-dev-wt/<short>" -s workspace-write \
-  --add-dir "E:/Github_Projects/live-miguisanson-dev/.git" --skip-git-repo-check \
-  -o prompts/<short>.out.md - < prompts/<short>.md
 ```
+
+Then one `Agent` call per packet with `model: "sonnet"`, telling it to work
+only in `E:/Github_Projects/live-miguisanson-dev-wt/<short>`. Independent
+packets go out in parallel, each in its own worktree.
 
 Every prompt starts: read `AGENTS.md`; the check is the spec — **do not modify
 it**; stop and explain if something looks wrong; touch only the named files.
-Remove the worktree after landing.
+Subagents can run the targeted tests themselves, but the main session still
+re-runs them and the gate before landing a packet. Remove the worktree after
+landing.
 
 - **No parallel packets before G-3…G-6 are ✅.** Without a gate, parallel work
   cannot be merged safely.
@@ -192,13 +193,12 @@ Remove the worktree after landing.
 - **Escalate, don't retry.** A packet that fails twice, or that would change a
   locked check or contract, comes back to Claude.
 
-### When an agent is unavailable — the fallback ladder
+### When a helper is unavailable — the fallback ladder
 
-1. **Codex out** → the same brief goes to `Agent` with `model: "sonnet"` in the
-   same worktree; independent packets in parallel.
-2. **Local model out** → `haiku` subagent (`sonnet` if it needs judgement).
-3. **Both out** → Claude subagents do both, cheapest model that can.
-4. **Only the main session** → implement inline, in the smallest packets.
+1. **Local model out (Ollama down)** → `haiku` subagent (`sonnet` if it needs
+   judgement).
+2. **Subagents unavailable** → the main session implements inline, in the
+   smallest packets.
 
 Every rung keeps the shape: failing check, review, gate, commit together. Note
 the rung used in STATE.md. If handing work off costs more than doing it, do it
@@ -210,18 +210,18 @@ When a skill's default disagrees with this file, this file wins.
 
 | Job | Owner | Not used for it |
 |---|---|---|
-| Memory across sessions, the phase loop | **GSD Core** (`budget` profile): `/gsd-progress` → `/gsd-discuss-phase` → `/gsd-plan-phase` → `/gsd-execute-phase` → `/gsd-verify-work`; `/gsd-ui-phase` before UI phases; `/gsd-pause-work` to stop | Superpowers brainstorming / writing-plans / executing-plans / subagent-driven-development; hand-written handoff files |
+| Memory across sessions, the phase loop | **GSD Core** (`balanced` profile): `/gsd-progress` → `/gsd-discuss-phase` → `/gsd-plan-phase` → `/gsd-execute-phase` → `/gsd-verify-work`; `/gsd-ui-phase` before UI phases; `/gsd-pause-work` to stop | Superpowers brainstorming / writing-plans / executing-plans / subagent-driven-development; hand-written handoff files |
 | Discipline inside a task | **Superpowers**: `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `requesting-code-review`, `receiving-code-review`, `using-git-worktrees`, `finishing-a-development-branch` | GSD `/gsd-add-tests`, `/gsd-debug`, `/gsd-code-review` |
 | A decision that is genuinely the owner's (PROPOSALS §4 row 12 lists the only kinds) | **grill-me** interactively; under the autopilot, the Owner queue | Guessing; ad-hoc question batches |
 | Every other design decision | The agent: take the recommended option, record it in `docs/PROPOSALS.md` §4 or VISION, continue | Waiting |
-| Implementation code | **Codex**, else the ladder | Claude subagents while Codex answers, including GSD's executor |
+| Implementation code | **Sonnet subagent** in a worktree, else the ladder | The main Opus session writing implementations |
 | Mechanical text | **Local model** | Opus |
 | UI/UX craft in `src/app/**`, `src/components/**`, `src/styles/**` | `ui-ux-pro-max` | — |
 | Here to Slay canvas client | `game-ui-ux`, `game-feel` | `audio-design`, `save-systems`, `create-game-assets`, `threejs-*` |
 | Library and framework facts | `context7` docs and `node_modules/next/dist/docs/` — **Next.js 16 differs from training data** (no `next lint`, `proxy.ts`, Turbopack builds) | Memory |
 
 **The shape inside `/gsd-execute-phase` is fixed:** (1) failing check, watched
-failing; (2) contract → Codex in a worktree; (3) targeted check and gate, run
+failing; (2) contract → a `sonnet` subagent in a worktree; (3) targeted check and gate, run
 by Claude; (4) `requesting-code-review` on the diff; (5)
 `verification-before-completion`; (6) one commit with check and implementation.
 

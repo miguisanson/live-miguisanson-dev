@@ -22,7 +22,7 @@ Do not read whole files. Gather with a few commands:
 - The `## Owner queue` in `.planning/STATE.md` — this is what the owner can
   actually do today; point at the matching steps in `docs/SETUP-OWNER.md`.
 - Is the live site up? One request to `https://miguisanson.dev`.
-- Helpers: Ollama up? Codex answering?
+- Helpers: Ollama up?
 
 Tell the owner in plain words, short: running or not, what is new as features,
 percent done, anything wrong (a stop, repeated crashes, stuck sessions, limits),

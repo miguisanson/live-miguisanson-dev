@@ -8,7 +8,7 @@ and the decisions on record.
 @AGENTS.md
 
 The file above holds the rules every agent follows and how work is split between
-Claude, Codex, Sonnet subagents and the local model. Do not restate them here.
+Claude, Sonnet subagents and the local model. Do not restate them here.
 
 ## Claude-specific notes
 
@@ -23,7 +23,7 @@ Claude, Codex, Sonnet subagents and the local model. Do not restate them here.
   [`docs/SETUP-OWNER.md`](docs/SETUP-OWNER.md) and the Owner queue in
   `.planning/STATE.md`.
 - **You are the architect and reviewer, not the typist.** Failing check and
-  contract first, implementation to Codex (else Sonnet subagents), mechanical
+  contract first, implementation to a `sonnet` subagent in a worktree, mechanical
   text to the local model, then you run the gate, review the diff and commit.
 - **Decide, don't ask** — except the few kinds of question PROPOSALS §4 row 12
   reserves for the owner. Take the recommended option, record it, continue.
